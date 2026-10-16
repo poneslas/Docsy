@@ -102,8 +102,17 @@ object OnboardingManager {
     fun markSpreadsheetReaderTourSeen(context: Context) =
         prefs(context).edit().putBoolean(KEY_SPREADSHEET_READER_TOUR_SEEN, true).apply()
 
+    /**
+     * The app's language. Until the user picks one it is the phone's own language (LocaleHelper
+     * falls back to English when the app has no translation for it), so a first launch on a
+     * Russian or Spanish phone is not in English.
+     */
     fun getSelectedLocale(context: Context): String =
-        prefs(context).getString(KEY_LOCALE, "en") ?: "en"
+        prefs(context).getString(KEY_LOCALE, null) ?: systemLanguageTag()
+
+    private fun systemLanguageTag(): String =
+        androidx.core.os.ConfigurationCompat.getLocales(android.content.res.Resources.getSystem().configuration)[0]
+            ?.toLanguageTag() ?: "en"
 
     fun setSelectedLocale(context: Context, languageTag: String) =
         prefs(context).edit().putString(KEY_LOCALE, languageTag).apply()
