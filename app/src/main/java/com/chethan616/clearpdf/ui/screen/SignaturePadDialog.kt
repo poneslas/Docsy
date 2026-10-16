@@ -73,11 +73,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -131,7 +129,6 @@ fun SignaturePadDialog(
     data class StrokeItem(val points: List<Offset>, val color: Color, val width: Float)
     val strokes = remember { mutableStateListOf<StrokeItem>() }
     var currentStroke by remember { mutableStateOf<List<Offset>>(emptyList()) }
-    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
     // Dark inks for a white "paper" pad — natural to sign with, and (unlike white ink)
     // the resulting signature is actually visible when stamped onto a white PDF page.
@@ -382,7 +379,6 @@ fun SignaturePadDialog(
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFFF7F7F3))
                     .border(1.dp, Color.Black.copy(0.10f), RoundedCornerShape(20.dp))
-                    .onSizeChanged { canvasSize = it }
                     .pointerInput(selectedColor, selectedWidth) {
                         detectDragGestures(
                             onDragStart = { start ->
@@ -561,16 +557,24 @@ fun SignaturePadDialog(
                 LiquidButton(
                     onClick = {
                         if (strokes.isEmpty()) return@LiquidButton
-                        val rawW = canvasSize.width.coerceAtLeast(200)
-                        val rawH = canvasSize.height.coerceAtLeast(200)
-                        val maxDim = 800f
-                        val scale = kotlin.math.min(1f, maxDim / kotlin.math.max(rawW, rawH).toFloat())
-                        val w = (rawW * scale).toInt().coerceIn(200, 1000)
-                        val h = (rawH * scale).toInt().coerceIn(200, 1000)
+                        // Keep only the ink (plus a small margin), not the whole pad: the signature
+                        // is then placed and sized by what was drawn, not by the empty paper around it.
+                        val pad = strokes.maxOf { it.width } / 2f + 6f
+                        val inkLeft = strokes.minOf { s -> s.points.minOf { it.x } } - pad
+                        val inkTop = strokes.minOf { s -> s.points.minOf { it.y } } - pad
+                        val inkW = (strokes.maxOf { s -> s.points.maxOf { it.x } } + pad - inkLeft).coerceAtLeast(1f)
+                        val inkH = (strokes.maxOf { s -> s.points.maxOf { it.y } } + pad - inkTop).coerceAtLeast(1f)
+                        // Strokes are vectors, so the long side is always rendered at maxDim: a small
+                        // drawing comes out as sharp as a large one.
+                        val maxDim = 1000f
+                        val scale = maxDim / kotlin.math.max(inkW, inkH)
+                        val w = (inkW * scale).toInt().coerceAtLeast(1)
+                        val h = (inkH * scale).toInt().coerceAtLeast(1)
                         try {
                             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
                             val canvas = Canvas(bmp)
                             canvas.scale(scale, scale)
+                            canvas.translate(-inkLeft, -inkTop)
                             for (item in strokes) {
                                 val stroke = item.points
                                 if (stroke.size < 2) continue
