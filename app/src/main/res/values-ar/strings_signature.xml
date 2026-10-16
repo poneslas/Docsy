@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Signature pad: Draw | Photo, and lifting a signature off a photo. -->
+<resources>
+    <string name="sig_mode_draw">رسم</string>
+    <string name="sig_mode_photo">صورة</string>
+    <string name="sig_photo_title">توقيع من صورة</string>
+    <string name="sig_photo_hint">وقّع بقلم داكن على ورقة بيضاء، ثم التقط صورة لها أو اختر صورة.</string>
+    <string name="sig_photo_camera">الكاميرا</string>
+    <string name="sig_photo_gallery">المعرض</string>
+    <string name="sig_photo_crop_hint">حدّد التوقيع</string>
+    <string name="sig_photo_auto">تلقائي</string>
+    <string name="sig_photo_original_ink">لون الحبر الأصلي</string>
+    <string name="sig_photo_none">لم يُعثر على توقيع. حدّده عن قرب أو حرّك شريط التمرير.</string>
+    <string name="sig_photo_failed">تعذّر فتح هذه الصورة.</string>
+</resources>

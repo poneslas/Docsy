@@ -1,5 +1,8 @@
 package com.chethan616.clearpdf.ui.screen
 
+import com.chethan616.clearpdf.ui.screen.signature.SignatureImportStage
+import com.chethan616.clearpdf.ui.components.GlassSegmentedControl
+import androidx.compose.material.icons.rounded.PhotoCamera
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -141,6 +144,8 @@ fun SignaturePadDialog(
         Color(0xFF6A1B9A)  // Purple
     )
     var selectedColor by remember { mutableStateOf(signatureColors[0]) }
+    // 0 = draw on the pad, 1 = lift a signature off a photo (SignatureImportStage).
+    var padMode by rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
 
     var selectedWidth by remember { androidx.compose.runtime.mutableFloatStateOf(6.5f) }
     var contentVisible by remember { mutableStateOf(false) }
@@ -266,15 +271,15 @@ fun SignaturePadDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Rounded.Gesture, null, Modifier.size(19.dp), chromeSoft)
+                    Icon(if (padMode == 0) Icons.Rounded.Gesture else Icons.Rounded.PhotoCamera, null, Modifier.size(19.dp), chromeSoft)
                     BasicText(
-                        stringResource(R.string.sig_draw_title),
+                        stringResource(if (padMode == 0) R.string.sig_draw_title else R.string.sig_photo_title),
                         style = TextStyle(chrome, 18.sp, FontWeight.Bold, letterSpacing = 0.2.sp)
                     )
                 }
 
                 LiquidIconButton(
-                    onClick = { if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) },
+                    onClick = { if (padMode == 0 && strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) },
                     backdrop = backdrop,
                     surfaceColor = chromeChip,
                     modifier = Modifier.size(44.dp)
@@ -282,13 +287,26 @@ fun SignaturePadDialog(
                     // Subtle when there's nothing to undo.
                     Icon(
                         Icons.Rounded.Undo, stringResource(R.string.undo), Modifier.size(20.dp),
-                        chrome.copy(if (strokes.isEmpty()) 0.32f else 1f)
+                        chrome.copy(if (padMode != 0 || strokes.isEmpty()) 0.32f else 1f)
                     )
                 }
             }
 
             Spacer(Modifier.height(8.dp))
 
+            // Draw | Photo: sign on the pad, or lift a signature off a photo of paper.
+            GlassSegmentedControl(
+                options = listOf(stringResource(R.string.sig_mode_draw), stringResource(R.string.sig_mode_photo)),
+                icons = listOf(Icons.Rounded.Gesture, Icons.Rounded.PhotoCamera),
+                selectedIndex = padMode,
+                onSelect = { padMode = it },
+                backdrop = backdrop,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            if (padMode == 0) {
             // Light control tray: ink colours (no outline rings — they read cleanly on
             // the light surface) and a liquid-glass thickness slider.
             Column(
@@ -613,6 +631,21 @@ fun SignaturePadDialog(
                         )
                     }
                 }
+            }
+            } else {
+                SignatureImportStage(
+                    backdrop = backdrop,
+                    inkColors = signatureColors,
+                    chrome = chrome,
+                    trayColor = trayColor,
+                    cardBorder = cardBorder,
+                    onExtracted = { bmp ->
+                        // Same path as a drawn signature: name it, save it, place it.
+                        pendingSignature = bmp
+                        signatureName = ""
+                        showNamePrompt = true
+                    }
+                )
             }
             }
 

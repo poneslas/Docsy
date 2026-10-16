@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Signature pad: Draw | Photo, and lifting a signature off a photo. -->
+<resources>
+    <string name="sig_mode_draw">Draw</string>
+    <string name="sig_mode_photo">Photo</string>
+    <string name="sig_photo_title">Signature from a photo</string>
+    <string name="sig_photo_hint">Sign with a dark pen on plain paper, then take a photo of it or pick one.</string>
+    <string name="sig_photo_camera">Camera</string>
+    <string name="sig_photo_gallery">Gallery</string>
+    <string name="sig_photo_crop_hint">Frame the signature</string>
+    <string name="sig_photo_auto">Auto</string>
+    <string name="sig_photo_original_ink">Original ink</string>
+    <string name="sig_photo_none">No signature found here. Frame it closer or move the slider.</string>
+    <string name="sig_photo_failed">Couldn\'t open this image.</string>
+</resources>

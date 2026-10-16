@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Signature pad: Draw | Photo, and lifting a signature off a photo. -->
+<resources>
+    <string name="sig_mode_draw">Нарисовать</string>
+    <string name="sig_mode_photo">Фото</string>
+    <string name="sig_photo_title">Подпись с фото</string>
+    <string name="sig_photo_hint">Распишитесь тёмной ручкой на белом листе и сфотографируйте.</string>
+    <string name="sig_photo_camera">Камера</string>
+    <string name="sig_photo_gallery">Галерея</string>
+    <string name="sig_photo_crop_hint">Выделите подпись рамкой</string>
+    <string name="sig_photo_auto">Авто</string>
+    <string name="sig_photo_original_ink">Как на фото</string>
+    <string name="sig_photo_none">Подписи не видно. Сузьте рамку или сдвиньте ползунок.</string>
+    <string name="sig_photo_failed">Снимок не открылся.</string>
+</resources>
