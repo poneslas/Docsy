@@ -323,6 +323,23 @@ private fun Offset.isInsidePolygon(polygon: List<Offset>): Boolean {
 }
 
 /** Translate a markup by [d] (move). */
+/**
+ * Whether [duplicated] can copy this markup: things placed on the page (ink, shapes, text boxes,
+ * images and signatures) — not edits of the page's own text, its form fields or text-range marks.
+ */
+internal fun PdfMarkup.canDuplicate(): Boolean = when (this) {
+    is PdfMarkup.StrokeMarkup, is PdfMarkup.RectMarkup, is PdfMarkup.OvalMarkup, is PdfMarkup.LineMarkup,
+    is PdfMarkup.TextBoxMarkup, is PdfMarkup.ImageMarkup -> true
+    else -> false
+}
+
+/** A copy of this markup moved by [offset] — the same size, since moving never resizes — with [newId] where it has one. */
+internal fun PdfMarkup.duplicated(newId: Long, offset: Offset): PdfMarkup = when (val moved = translated(offset)) {
+    is PdfMarkup.ImageMarkup -> moved.copy(id = newId)
+    is PdfMarkup.TextBoxMarkup -> moved.copy(id = newId)
+    else -> moved
+}
+
 internal fun PdfMarkup.translated(d: Offset): PdfMarkup = when (this) {
     is PdfMarkup.StrokeMarkup  -> copy(points = points.map { it + d })
     is PdfMarkup.RectMarkup    -> copy(start = start + d, end = end + d)

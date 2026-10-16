@@ -165,9 +165,6 @@ internal fun PdfViewerBottomToolbar(
     onZoomStep: (Float) -> Unit,
     onResetZoom: () -> Unit,
     onShowSaveDialog: () -> Unit,
-    onImageDone: () -> Unit,
-    onReplaceImage: () -> Unit,
-    onDeleteImage: () -> Unit,
     onSetColorLong: (Long) -> Unit,
     onSetStrokeWidth: (Float) -> Unit,
     onDismissExportFeedback: () -> Unit,
@@ -379,49 +376,9 @@ internal fun PdfViewerBottomToolbar(
                                 ) { Icon(Icons.Rounded.Delete, stringResource(R.string.viewer_clear), Modifier.size(19.dp), Color.White) }
                             }
 
-                            showImageTools -> {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    LiquidButton(onClick = onImageDone, backdrop = backdrop, tint = Color(0xFF00C853)) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), Color.White)
-                                            BasicText(stringResource(R.string.viewer_done), style = TextStyle(Color.White, 14.sp, FontWeight.Bold))
-                                        }
-                                    }
-
-                                    LiquidButton(onClick = onReplaceImage, backdrop = backdrop, tint = LiquidGlassColors.Blue) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Icon(Icons.Rounded.SwapHoriz, null, Modifier.size(18.dp), Color.White)
-                                            BasicText(
-                                                if (activeIsSignature) stringResource(R.string.viewer_new_sign) else stringResource(R.string.viewer_replace),
-                                                style = TextStyle(Color.White, 13.sp, FontWeight.Medium)
-                                            )
-                                        }
-                                    }
-
-                                    LiquidButton(onClick = onDeleteImage, backdrop = backdrop, tint = Color(0xFFEF5350)) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Icon(Icons.Rounded.Delete, null, Modifier.size(18.dp), Color.White)
-                                            BasicText(stringResource(R.string.delete), style = TextStyle(Color.White, 13.sp, FontWeight.Medium))
-                                        }
-                                    }
-                                }
-                            }
+                            // A selected image's actions (replace, duplicate, delete) are in the
+                            // capsule beside it; this bar keeps ✕ and, for a signature, its ink.
+                            showImageTools -> Unit
                         }
                     }
                 }
@@ -430,6 +387,8 @@ internal fun PdfViewerBottomToolbar(
                 // so the toolbar stays compact instead of stacking rows. Same curved-edge fade as the
                 // tool row above, so the colour beads disappear behind the capsule curve rather than a
                 // straight cut.
+                // Colours recolour a signature; a photo has nothing to recolour.
+                if (!showImageTools || activeIsSignature) {
                 val attrRowScroll = rememberScrollState()
                 Row(
                     Modifier
@@ -468,6 +427,7 @@ internal fun PdfViewerBottomToolbar(
                             )
                         }
                     }
+                }
                 }
             }
             }

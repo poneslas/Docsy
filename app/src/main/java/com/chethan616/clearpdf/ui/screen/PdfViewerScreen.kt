@@ -1597,9 +1597,29 @@ fun PdfViewerScreen(
                                     } else if (idx in m.indices) {
                                         m.removeAt(idx)
                                     }
+                                    if (target is PdfMarkup.ImageMarkup) { activeImageId = null; activeTool = PdfEditTool.None }
                                     selectedAnnoPage = null; selectedAnnoIndex = -1
                                     selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet()
                                 },
+                                onDuplicateMarkup       = { idx ->
+                                    val m = getPageMarks(page)
+                                    val source = m.getOrNull(idx)?.takeIf { it.canDuplicate() }
+                                    val bounds = source?.movableBounds()
+                                    if (source != null && bounds != null) {
+                                        // Beside the original, nudged down-right — up-left when that
+                                        // would leave the page — so both stay visible and grabbable.
+                                        val cs = pageCanvasSizes[page]
+                                        val step = 24f
+                                        val dx = if (cs == null || bounds.right + step <= cs.width) step else -step
+                                        val dy = if (cs == null || bounds.bottom + step <= cs.height) step else -step
+                                        val copy = source.duplicated(System.nanoTime(), Offset(dx, dy))
+                                        m.add(copy)
+                                        recordEdit(page)
+                                        if (copy is PdfMarkup.ImageMarkup) activeImageId = copy.id
+                                        else { selectedAnnoPage = page; selectedAnnoIndex = m.lastIndex }
+                                    }
+                                },
+                                onReplaceImage          = { imagePickerLauncher.launch("image/*") },
                                 textSelection = textSelection,
                                 markupBar = markupBarHost,
                                 onMoveImageToPage = { from, img, to ->
@@ -1929,15 +1949,6 @@ fun PdfViewerScreen(
                     onResetZoom        = { scope.launch { animateZoomPan(1f, Offset.Zero) }
                                           lastInteractionAtMs = System.currentTimeMillis() },
                     onShowSaveDialog   = { requestSave() },
-                    onImageDone        = { activeImageId = null; activeTool = PdfEditTool.None },
-                    onReplaceImage     = {
-                        if (activeItem?.isSignature == true) showSignaturePad = true
-                        else imagePickerLauncher.launch("image/*")
-                    },
-                    onDeleteImage      = {
-                        activeImageLoc()?.let { (pg, idx, _) -> getPageMarks(pg).removeAt(idx) }
-                        activeImageId = null; activeTool = PdfEditTool.None
-                    },
                     onSetColorLong   = { currentColorLong = it },
                     onSetStrokeWidth = { currentStrokeWidth = it },
                     onDismissExportFeedback = { viewModel.clearExportFeedback() },

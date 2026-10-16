@@ -36,6 +36,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
+import androidx.annotation.StringRes
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
@@ -182,6 +184,10 @@ internal fun PdfContinuousPage(
     onSelectMarkups: (Set<Int>) -> Unit = {},
     onMoveMarkups: (Set<Int>, Offset) -> Unit = { _, _ -> },
     onDeleteMarkup: (Int) -> Unit = {},
+    /** Adds a same-size copy of the markup at this index beside it, and selects the copy. */
+    onDuplicateMarkup: (Int) -> Unit = {},
+    /** Swaps the selected (non-signature) image for another picture, keeping its place. */
+    onReplaceImage: () -> Unit = {},
     /** The viewer's text selection: this page draws its slice of the highlight and registers its coordinates. */
     textSelection: PdfTextSelectionState,
     /** Where this page publishes its contextual Edit / Delete bar; the viewer draws it. */
@@ -921,6 +927,31 @@ internal fun PdfContinuousPage(
             )
         }
 
+        // A selected image or signature gets the same contextual capsule as the other markups:
+        // duplicate (same size), delete, and for a picture, replace it.
+        if (activeTool == PdfEditTool.Image && activeImageId != null) {
+            val imgIdx = marks.indexOfLast { it is PdfMarkup.ImageMarkup && it.id == activeImageId }
+            (marks.getOrNull(imgIdx) as? PdfMarkup.ImageMarkup)?.let { img ->
+                PublishMarkupBar(
+                    host = markupBar,
+                    page = page,
+                    token = imgIdx,
+                    anchor = img.movableBounds() ?: Rect(img.start, img.end),
+                    actions = if (img.isSignature) markupActions(img, editable = false)
+                        else listOf(MarkupAction.Replace) + markupActions(img, editable = false),
+                    onAction = { action ->
+                        when (action) {
+                            MarkupAction.Replace -> onReplaceImage()
+                            MarkupAction.Duplicate -> onDuplicateMarkup(imgIdx)
+                            MarkupAction.Delete -> onDeleteMarkup(imgIdx)
+                            MarkupAction.Edit -> Unit
+                        }
+                    },
+                    onDismiss = { onActiveImageIdChanged(null); onActiveToolChanged(PdfEditTool.None) }
+                )
+            }
+        }
+
         val csz = pageCanvasSizes[page]
 
         // ── Contextual Edit / Delete bar for the selected shape / text / note ──────
@@ -933,14 +964,19 @@ internal fun PdfContinuousPage(
                         page = page,
                         token = selectedMarkupIndex,
                         anchor = b,
-                        onEdit = {
-                            when (selM) {
-                                is PdfMarkup.TextBoxMarkup -> onEditAnnotation(selM.id)
-                                is PdfMarkup.NoteMarkup    -> onEditAnnotation(selM.id)
-                                else -> onEditShape(selectedMarkupIndex)
+                        actions = markupActions(selM),
+                        onAction = { action ->
+                            when (action) {
+                                MarkupAction.Edit -> when (selM) {
+                                    is PdfMarkup.TextBoxMarkup -> onEditAnnotation(selM.id)
+                                    is PdfMarkup.NoteMarkup    -> onEditAnnotation(selM.id)
+                                    else -> onEditShape(selectedMarkupIndex)
+                                }
+                                MarkupAction.Duplicate -> onDuplicateMarkup(selectedMarkupIndex)
+                                MarkupAction.Delete -> onDeleteMarkup(selectedMarkupIndex)
+                                MarkupAction.Replace -> Unit
                             }
                         },
-                        onDelete = { onDeleteMarkup(selectedMarkupIndex) },
                         onDismiss = { onSelectMarkup(-1) }
                     )
                 }
@@ -970,8 +1006,11 @@ internal fun PdfContinuousPage(
                     page = page,
                     token = selectedMarkupIndex,
                     anchor = te.rect,
-                    onEdit = { onEditAnnotation(te.id) },
-                    onDelete = { onDeleteMarkup(selectedMarkupIndex) },
+                    actions = markupActions(te),
+                    onAction = { action ->
+                        if (action == MarkupAction.Edit) onEditAnnotation(te.id)
+                        else if (action == MarkupAction.Delete) onDeleteMarkup(selectedMarkupIndex)
+                    },
                     onDismiss = { onSelectMarkup(-1) }
                 )
             }
@@ -993,8 +1032,11 @@ internal fun PdfContinuousPage(
                         page = page,
                         token = selectedMarkupIndex,
                         anchor = anchorRect,
-                        onEdit = { onEditShape(selectedMarkupIndex) },
-                        onDelete = { onDeleteMarkup(selectedMarkupIndex) },
+                        actions = markupActions(selected),
+                        onAction = { action ->
+                            if (action == MarkupAction.Edit) onEditShape(selectedMarkupIndex)
+                            else if (action == MarkupAction.Delete) onDeleteMarkup(selectedMarkupIndex)
+                        },
                         onDismiss = { onSelectMarkup(-1) }
                     )
                 }
@@ -1031,7 +1073,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRegion(source: 
     )
 }
 
-private val MarkupBarWidth = 236.dp
 private val MarkupBarHeight = 48.dp
 
 /**
@@ -1051,9 +1092,28 @@ internal class MarkupBarHost {
     internal var page by mutableIntStateOf(-1)
     /** The markup's bounds in the owning page's px (its layout coordinates). Read at layout only. */
     internal var anchor by mutableStateOf(Rect.Zero)
-    internal var onEdit: () -> Unit = {}
-    internal var onDelete: () -> Unit = {}
+    /** What the capsule offers, in order; state, since the capsule lays out from it. */
+    internal var actions by mutableStateOf<List<MarkupAction>>(emptyList())
+    internal var onAction: (MarkupAction) -> Unit = {}
     internal var onDismiss: () -> Unit = {}
+}
+
+/**
+ * One action of the contextual capsule. A page publishes the list that applies to the selected
+ * markup ([markupActions], or its own for images); the capsule draws them in order, then ✕.
+ */
+internal enum class MarkupAction(val icon: ImageVector, @StringRes val label: Int, val destructive: Boolean = false) {
+    Edit(Icons.Rounded.Edit, R.string.edit),
+    Replace(Icons.Rounded.SwapHoriz, R.string.viewer_replace),
+    Duplicate(Icons.Rounded.ContentCopy, R.string.markup_duplicate),
+    Delete(Icons.Rounded.Delete, R.string.delete, destructive = true)
+}
+
+/** The capsule for a placed markup: its editor when it has one, a copy when it can be duplicated, delete. */
+private fun markupActions(markup: PdfMarkup, editable: Boolean = true): List<MarkupAction> = buildList {
+    if (editable) add(MarkupAction.Edit)
+    if (markup.canDuplicate()) add(MarkupAction.Duplicate)
+    add(MarkupAction.Delete)
 }
 
 @Composable
@@ -1062,16 +1122,16 @@ private fun PublishMarkupBar(
     page: Int,
     token: Int,
     anchor: Rect,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    actions: List<MarkupAction>,
+    onAction: (MarkupAction) -> Unit,
     onDismiss: () -> Unit
 ) {
     val key = remember { Any() }
     // Plain fields for the callbacks (read at click time); state for what the bar lays out from.
     // Same-value writes are no-ops, so an idle recomposition invalidates nothing.
     SideEffect {
-        host.onEdit = onEdit
-        host.onDelete = onDelete
+        host.actions = actions
+        host.onAction = onAction
         host.onDismiss = onDismiss
         host.page = page
         host.token = token
@@ -1161,8 +1221,8 @@ internal fun PdfMarkupBarLayer(
                 backdrop = backdrop,
                 glass = glass,
                 ink = ink,
-                onEdit = { host.onEdit() },
-                onDelete = { host.onDelete() },
+                actions = host.actions,
+                onAction = { host.onAction(it) },
                 onDismiss = { host.onDismiss() }
             )
         },
@@ -1201,7 +1261,7 @@ internal fun PdfMarkupBarLayer(
 }
 
 /**
- * The Edit / Delete / dismiss capsule itself, in the title-chip glass: [glass] tint over the lensed
+ * The contextual capsule itself — the published [MarkupAction]s in order, then ✕ — in the title-chip glass: [glass] tint over the lensed
  * live page, [ink] chosen for the page behind it. Dismissal also works by tapping anywhere else in the
  * viewer or pressing Back.
  */
@@ -1210,8 +1270,8 @@ private fun MarkupActionBar(
     backdrop: Backdrop,
     glass: Color,
     ink: Color,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    actions: List<MarkupAction>,
+    onAction: (MarkupAction) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1219,22 +1279,21 @@ private fun MarkupActionBar(
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     Row(
         modifier
-            .width(MarkupBarWidth)
             .height(MarkupBarHeight)
             .viewerGlass(backdrop, glass, shape = { com.kyant.shapes.Capsule })
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MarkupBarItem(Icons.Rounded.Edit, stringResource(R.string.edit), ink, Modifier.weight(1f)) {
-            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.ContextClick)
-            onEdit()
+        actions.forEach { action ->
+            MarkupBarItem(action.icon, stringResource(action.label), if (action.destructive) red else ink) {
+                haptics.performHapticFeedback(
+                    if (action.destructive) androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                    else androidx.compose.ui.hapticfeedback.HapticFeedbackType.ContextClick
+                )
+                onAction(action)
+            }
+            Box(Modifier.width(1.dp).height(22.dp).background(ink.copy(0.12f)))
         }
-        Box(Modifier.width(1.dp).height(22.dp).background(ink.copy(0.12f)))
-        MarkupBarItem(Icons.Rounded.Delete, stringResource(R.string.delete), red, Modifier.weight(1f)) {
-            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-            onDelete()
-        }
-        Box(Modifier.width(1.dp).height(22.dp).background(ink.copy(0.12f)))
         MarkupBarItem(Icons.Rounded.Close, stringResource(R.string.done), ink.copy(0.85f), Modifier.width(44.dp), iconOnly = true) {
             haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.ContextClick)
             onDismiss()
@@ -1274,7 +1333,7 @@ private fun MarkupBarItem(
             .clip(com.kyant.shapes.Capsule)
             .drawBehind { if (wash > 0f) drawRect(color.copy(alpha = wash)) }
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = if (iconOnly) 0.dp else 8.dp),
+            .padding(horizontal = if (iconOnly) 0.dp else 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {

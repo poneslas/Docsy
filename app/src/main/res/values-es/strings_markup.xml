@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Contextual capsule over a selected markup. -->
+<resources>
+    <string name="markup_duplicate">Duplicar</string>
+</resources>
