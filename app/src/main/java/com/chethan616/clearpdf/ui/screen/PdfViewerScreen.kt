@@ -2497,20 +2497,27 @@ fun PdfViewerScreen(
                             context, "${context.packageName}.provider", java.io.File(u.path!!)
                         )
                     else u
-                val shareDir = java.io.File(context.cacheDir, "shared").apply { mkdirs() }
+                val sharedRoot = java.io.File(context.cacheDir, "shared").apply { mkdirs() }
+                // Shares older than a day are long since read by the app they went to.
+                val dayAgo = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+                sharedRoot.listFiles()?.filter { it.lastModified() < dayAgo }?.forEach { it.deleteRecursively() }
+                // A fresh folder per share, so every file goes out under its own name (no
+                // "_edited", timestamp or "protected_" added) without clashing with an earlier one.
+                val shareDir = java.io.File(sharedRoot, System.currentTimeMillis().toString()).apply { mkdirs() }
+                // The name as the user knows it: only what no file system allows is replaced, so
+                // Cyrillic, spaces and brackets stay (they all became "_" before).
+                fun fileSafe(name: String) = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").trim()
                 // Unsaved edits travel with the share: build an edited copy first and
                 // make every PDF-derived format (PDF, images, text) from it.
                 val edited: android.net.Uri? = if (hasUnsavedEdits && format != ShareFormat.ORIGINAL) {
                     val overlays = buildExportOverlays(annotationsByPage, state.ocrBlocksByPage, pageCanvasSizes, pageBitmapSizes)
-                    val name = state.fileName.substringBeforeLast('.').ifBlank { "document" }
-                        .replace(Regex("[^A-Za-z0-9._-]"), "_")
-                    viewModel.writeEditedCopy(context, overlays, java.io.File(shareDir, "${name}_edited.pdf"))
+                    val name = fileSafe(state.fileName.substringBeforeLast('.')).ifBlank { "document" }
+                    viewModel.writeEditedCopy(context, overlays, java.io.File(shareDir, "$name.pdf"))
                 } else null
                 val sourcePdf = edited ?: state.document?.uri
                 when (format) {
                     ShareFormat.IMAGES -> sourcePdf?.let { pdf ->
-                        val stem = state.fileName.substringBeforeLast('.').ifBlank { "page" }
-                            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+                        val stem = fileSafe(state.fileName.substringBeforeLast('.')).ifBlank { "page" }
                         val count = state.pageCount.coerceAtLeast(1)
                         val uris = ArrayList<android.net.Uri>()
                         for (p in 0 until count) {
@@ -2524,8 +2531,7 @@ fun PdfViewerScreen(
                         uris.firstOrNull()?.let { it to "image/png" }
                     }
                     ShareFormat.TEXT -> sourcePdf?.let { pdf ->
-                        val stem = state.fileName.substringBeforeLast('.').ifBlank { "document" }
-                            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+                        val stem = fileSafe(state.fileName.substringBeforeLast('.')).ifBlank { "document" }
                         val f = java.io.File(shareDir, "$stem.txt")
                         f.writeText(viewModel.extractAllText(context, pdf))
                         androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.provider", f) to "text/plain"
@@ -2534,9 +2540,8 @@ fun PdfViewerScreen(
                         // Mirror the original into our own storage so the target app can
                         // actually read it — a SAF uri from another provider can't be
                         // re-granted to a third app.
-                        val safeName = state.fileName.ifBlank { "document.$shareExt" }
-                            .replace(Regex("[^A-Za-z0-9._-]"), "_")
-                        val out = java.io.File(shareDir, "${System.currentTimeMillis()}_$safeName")
+                        val safeName = fileSafe(state.fileName).ifBlank { "document.$shareExt" }
+                        val out = java.io.File(shareDir, safeName)
                         context.contentResolver.openInputStream(orig)?.use { input ->
                             out.outputStream().use { input.copyTo(it) }
                         } ?: return@runCatching null
@@ -2546,7 +2551,7 @@ fun PdfViewerScreen(
                     }
                     ShareFormat.PDF -> sourcePdf?.let { pdf ->
                         if (encrypt && password.isNotBlank()) {
-                            val out = java.io.File(shareDir, "protected_${System.currentTimeMillis()}.pdf")
+                            val out = java.io.File(shareDir, (fileSafe(state.fileName.substringBeforeLast('.')).ifBlank { "document" }) + ".pdf")
                             val outUri = androidx.core.content.FileProvider.getUriForFile(
                                 context, "${context.packageName}.provider", out
                             )
