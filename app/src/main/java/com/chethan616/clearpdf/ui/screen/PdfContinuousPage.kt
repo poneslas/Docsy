@@ -892,7 +892,16 @@ internal fun PdfContinuousPage(
                             val idx = marks.indexOfLast { it is PdfMarkup.ImageMarkup && it.id == activeImageId }
                             val img = marks.getOrNull(idx) as? PdfMarkup.ImageMarkup ?: return@detectDragGestures
                             val pw = size.width.toFloat(); val ph = size.height.toFloat()
-                            marks[idx] = if (resizing) {
+                            marks[idx] = if (resizing && img.isSignature) {
+                                // A signature keeps its proportions: a stretched one no longer
+                                // looks like the signer's hand. Scales along the diagonal like text.
+                                val iw = img.end.x - img.start.x; val ih = img.end.y - img.start.y
+                                val ratio = img.bitmap.width.toFloat() / img.bitmap.height.coerceAtLeast(1)
+                                val maxW = minOf(pw - img.start.x, (ph - img.start.y) * ratio)
+                                val minW = maxOf(24f, 24f * ratio)
+                                val nw = (iw * diagonalScale(Offset(iw, ih), drag)).coerceIn(minW, maxW.coerceAtLeast(minW))
+                                img.copy(end = Offset(img.start.x + nw, img.start.y + nw / ratio))
+                            } else if (resizing) {
                                 img.copy(end = Offset(
                                     (img.end.x + drag.x).coerceIn(img.start.x + 24f, pw),
                                     (img.end.y + drag.y).coerceIn(img.start.y + 24f, ph)

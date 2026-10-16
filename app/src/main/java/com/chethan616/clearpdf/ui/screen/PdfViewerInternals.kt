@@ -369,6 +369,17 @@ internal fun PdfMarkup.resizedBy(drag: Offset, bounds: Rect): PdfMarkup = when (
 }
 
 /**
+ * Uniform scale for a box of [size] whose bottom-right corner is dragged by [drag]: the drag
+ * projected onto the box diagonal, so the corner follows the finger along the diagonal and sideways
+ * jitter is ignored. Used wherever a resize must keep proportions (text, signatures).
+ */
+internal fun diagonalScale(size: Offset, drag: Offset): Float {
+    val t = size + drag
+    val len2 = (size.x * size.x + size.y * size.y).coerceAtLeast(1f)
+    return (t.x * size.x + t.y * size.y) / len2
+}
+
+/**
  * Absolute resize: this markup as it was when the gesture began ([startBounds]), with its
  * bottom-right corner moved by the gesture's TOTAL drag. The top-left stays put, so the markup
  * never moves while it is resized.
@@ -379,10 +390,7 @@ internal fun PdfMarkup.resizedBy(drag: Offset, bounds: Rect): PdfMarkup = when (
  */
 internal fun PdfMarkup.resizedFrom(startBounds: Rect, total: Offset): PdfMarkup = when (this) {
     is PdfMarkup.TextBoxMarkup -> {
-        val d = startBounds.bottomRight - startBounds.topLeft
-        val t = d + total
-        val len2 = (d.x * d.x + d.y * d.y).coerceAtLeast(1f)
-        val f = ((t.x * d.x + t.y * d.y) / len2).coerceIn(0.15f, 10f)
+        val f = diagonalScale(startBounds.bottomRight - startBounds.topLeft, total).coerceIn(0.15f, 10f)
         copy(fontSize = (fontSize * f).coerceIn(8f, 480f))
     }
     else -> resizedBy(total, startBounds)
