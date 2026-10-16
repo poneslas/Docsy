@@ -595,10 +595,10 @@ fun SettingsScreen(
                 if (p == PageAbout) SettingsSection(backdrop, uiSensor, Modifier, padding = 24.dp, horizontalAlignment = Alignment.CenterHorizontally) {
                     // Доки: своя иконка и честная строка «форк ClearPDF» со ссылкой на оригинал.
                     Box(
-                        Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(colorResource(R.color.doki_icon_background)),
+                        Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(colorResource(R.color.docsy_icon_background)),
                         contentAlignment = Alignment.Center
                     ) {
-                        androidx.compose.foundation.Image(painterResource(R.drawable.doki_icon_foreground), null, Modifier.fillMaxSize().graphicsLayer { scaleX = 1.45f; scaleY = 1.45f })
+                        androidx.compose.foundation.Image(painterResource(R.drawable.docsy_icon_foreground), null, Modifier.fillMaxSize().graphicsLayer { scaleX = 1.45f; scaleY = 1.45f })
                     }
                     BasicText(stringResource(R.string.app_name), style = TextStyle(ink, 20.sp, FontWeight.Bold))
                     BasicText(versionLabel, style = TextStyle(sub, 13.sp))

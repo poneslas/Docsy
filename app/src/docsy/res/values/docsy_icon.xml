@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Доки: фон иконки, тёплый молочный. -->
-    <color name="doki_icon_background">#FDF6F2</color>
+    <color name="docsy_icon_background">#FDF6F2</color>
 </resources>
