@@ -922,6 +922,8 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
             val formValues = overlaysByPage.values.flatten().filterIsInstance<ExportOverlay.FormValue>()
                 .associate { it.fieldName to it.value }
             if (formValues.isNotEmpty()) runCatching { com.kyant.pdfcore.form.PdfFormWidgets.apply(pdDoc, formValues) }
+            // One per document: a face embedded for non-Latin text is then subset once for all pages.
+            val textWriter = com.kyant.pdfcore.text.PdfTextWriter(pdDoc)
             overlaysByPage.forEach { (pageIdx, overlays) ->
                 if (pageIdx !in 0 until pdDoc.numberOfPages) return@forEach
                 val page = pdDoc.getPage(pageIdx)
@@ -941,7 +943,7 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
                     true, true
                 ).use { cs ->
                     for (overlay in overlays) {
-                        drawOverlayOnPage(cs, overlay, pageW, pageH, pdDoc, page)
+                        drawOverlayOnPage(cs, overlay, pageW, pageH, pdDoc, page, textWriter)
                     }
                 }
             }
@@ -958,7 +960,8 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         pageW: Float,
         pageH: Float,
         pdDoc: com.tom_roush.pdfbox.pdmodel.PDDocument,
-        page: com.tom_roush.pdfbox.pdmodel.PDPage
+        page: com.tom_roush.pdfbox.pdmodel.PDPage,
+        textWriter: com.kyant.pdfcore.text.PdfTextWriter
     ) {
         fun nx(x: Float) = x * pageW
         fun ny(y: Float) = (1f - y) * pageH  // PDF Y=0 is bottom
@@ -1086,25 +1089,14 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
 
                 is ExportOverlay.TextStamp -> {
                     if (overlay.text.isBlank()) return
-                    val c = android.graphics.Color.valueOf(overlay.colorArgb)
-                    val font = com.tom_roush.pdfbox.pdmodel.font.PDType1Font.HELVETICA
                     val size = (overlay.fontSizeNorm * pageH).coerceIn(4f, pageH)
                     val leading = size * 1.2f
-                    // PDFBox's WinAnsi encoding rejects unsupported glyphs; sanitize to Latin-1.
-                    val lines = overlay.text.split("\n").map { line ->
-                        buildString { line.forEach { ch -> append(if (ch.code in 32..255) ch else '?') } }
-                    }
                     val startX = nx(overlay.position.x)
                     val startY = ny(overlay.position.y) - size  // baseline for first line
-                    cs.beginText()
-                    cs.setNonStrokingColor(c.red(), c.green(), c.blue())
-                    cs.setFont(font, size)
-                    cs.newLineAtOffset(startX, startY)
-                    lines.forEachIndexed { idx, line ->
-                        if (idx > 0) cs.newLineAtOffset(0f, -leading)
-                        runCatching { cs.showText(line) }
+                    // Any script: Helvetica for Latin, an embedded face beyond it (Cyrillic was "?").
+                    overlay.text.split("\n").forEachIndexed { idx, line ->
+                        runCatching { textWriter.drawLine(cs, line, startX, startY - idx * leading, size, overlay.colorArgb) }
                     }
-                    cs.endText()
                 }
 
                 // Already applied to the content stream / form before this pass.

@@ -3,6 +3,7 @@ package com.kyant.pdfcore.searchable
 import android.content.Context
 import android.net.Uri
 import com.kyant.pdfcore.internal.PdfBox
+import com.kyant.pdfcore.text.PdfFontResolver
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
@@ -33,10 +34,12 @@ object PdfSearchableStamper {
         wordsByPage: Map<Int, List<InvisibleWord>>
     ) {
         PdfBox.ensureInitialized(context)
-        val font = PDType1Font.HELVETICA
 
         context.contentResolver.openInputStream(sourceUri)?.use { input ->
             PDDocument.load(input).use { doc ->
+                // Recognized Cyrillic, Greek… needs an embedded face: with Helvetica alone those words
+                // became blanks and a scan in those languages wasn't searchable.
+                val fonts = PdfFontResolver(doc)
                 for ((pageIndex, words) in wordsByPage) {
                     if (words.isEmpty() || pageIndex !in 0 until doc.numberOfPages) continue
                     val page = doc.getPage(pageIndex)
@@ -49,12 +52,17 @@ object PdfSearchableStamper {
 
                     PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { cs ->
                         words.forEach word@{ word ->
-                            val sanitized = sanitize(word.text)
-                            if (sanitized.isBlank()) return@word
+                            val text = word.text.trim()
+                            if (text.isBlank()) return@word
+                            // Invisible text has nothing to draw as an image: a word no face can show
+                            // keeps its Latin-1 part in Helvetica, as before.
+                            val font = fonts.forText(text) ?: PDType1Font.HELVETICA
+                            val shown = if (font === PDType1Font.HELVETICA) sanitize(text) else text
+                            if (shown.isBlank()) return@word
                             val wordWpt = ((word.right - word.left) * w).coerceAtLeast(0.01f)
                             val wordHpt = ((word.bottom - word.top) * h).coerceAtLeast(0.01f)
                             val fontSize = wordHpt.coerceIn(3f, 400f)
-                            val rawWidth = font.getStringWidth(sanitized) / 1000f * fontSize
+                            val rawWidth = font.getStringWidth(shown) / 1000f * fontSize
                             // Horizontally scale the glyphs to match the OCR box's measured width, so a
                             // reader's own "highlight the match" rectangle lines up with the scanned text.
                             val scaleX = if (rawWidth > 0.01f) (wordWpt / rawWidth).coerceIn(0.05f, 20f) else 1f
@@ -68,7 +76,7 @@ object PdfSearchableStamper {
                                 cs.setRenderingMode(RenderingMode.NEITHER)
                                 cs.setFont(font, fontSize)
                                 cs.setTextMatrix(Matrix(scaleX, 0f, 0f, 1f, x, y))
-                                cs.showText(sanitized)
+                                cs.showText(shown)
                                 cs.endText()
                             }
                         }
@@ -81,7 +89,7 @@ object PdfSearchableStamper {
         } ?: throw IllegalStateException("Unable to read PDF")
     }
 
-    /** PDFBox's WinAnsi encoding rejects unsupported glyphs; keep to Latin-1 (mirrors PdfWatermarker). */
+    /** Helvetica (WinAnsi) rejects glyphs beyond Latin-1; keep to it when no other face can show the word. */
     private fun sanitize(text: String): String =
         buildString { text.forEach { ch -> append(if (ch.code in 32..255) ch else ' ') } }.trim()
 }

@@ -24,14 +24,7 @@ internal object PdfTextImageFallback {
     ): Float {
         val pt = kotlin.math.hypot(trm.getValue(1, 0), trm.getValue(1, 1))
         if (pt <= 0f) return 0f
-        val scale = 4f // px per pt: sharp at print zoom
-        val family = when { mono -> Typeface.MONOSPACE; serif -> Typeface.SERIF; else -> Typeface.SANS_SERIF }
-        val style = when { bold && italic -> Typeface.BOLD_ITALIC; bold -> Typeface.BOLD; italic -> Typeface.ITALIC; else -> Typeface.NORMAL }
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = pt * scale
-            color = 0xFF000000.toInt() or rgb
-            typeface = Typeface.create(family, style)
-        }
+        val paint = paint(pt, rgb, bold, italic, serif, mono)
         val fm = paint.fontMetrics
         val w = paint.measureText(text).coerceAtLeast(1f)
         val h = (fm.descent - fm.ascent).coerceAtLeast(1f)
@@ -40,9 +33,25 @@ internal object PdfTextImageFallback {
         val image = runCatching { LosslessFactory.createFromImage(doc, bmp) }.getOrNull() ?: return 0f
         bmp.recycle()
         val x = trm.translateX
-        val y = trm.translateY - (fm.descent / scale)
-        cs.drawImage(image, x, y, (w + 2f) / scale, (h + 2f) / scale)
+        val y = trm.translateY - (fm.descent / PxPerPt)
+        cs.drawImage(image, x, y, (w + 2f) / PxPerPt, (h + 2f) / PxPerPt)
         val unit = kotlin.math.hypot(trm.getValue(0, 0), trm.getValue(0, 1))
-        return if (unit > 0f) (w / scale) / unit else 0f
+        return if (unit > 0f) (w / PxPerPt) / unit else 0f
+    }
+
+    /** Width in points of [text] at [pt], as [draw] would lay it out. */
+    fun measure(text: String, pt: Float, bold: Boolean, italic: Boolean, serif: Boolean, mono: Boolean): Float =
+        if (pt <= 0f || text.isEmpty()) 0f else paint(pt, 0, bold, italic, serif, mono).measureText(text) / PxPerPt
+
+    private const val PxPerPt = 4f // px per pt: sharp at print zoom
+
+    private fun paint(pt: Float, rgb: Int, bold: Boolean, italic: Boolean, serif: Boolean, mono: Boolean): Paint {
+        val family = when { mono -> Typeface.MONOSPACE; serif -> Typeface.SERIF; else -> Typeface.SANS_SERIF }
+        val style = when { bold && italic -> Typeface.BOLD_ITALIC; bold -> Typeface.BOLD; italic -> Typeface.ITALIC; else -> Typeface.NORMAL }
+        return Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = pt * PxPerPt
+            color = 0xFF000000.toInt() or rgb
+            typeface = Typeface.create(family, style)
+        }
     }
 }

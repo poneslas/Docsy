@@ -2,12 +2,12 @@ package com.kyant.pdfcore.watermark
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.net.Uri
 import com.kyant.pdfcore.internal.PdfBox
+import com.kyant.pdfcore.text.PdfFontStyle
+import com.kyant.pdfcore.text.PdfTextWriter
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
 import com.tom_roush.pdfbox.util.Matrix
@@ -19,7 +19,7 @@ import kotlin.math.min
  * worker thread (same contract as the other pdf-core services).
  *
  * Original implementation for ClearPDF — modeled on the app's existing text-stamp export path
- * (PDExtendedGraphicsState alpha + PDType1Font.showText), adapted to a page-centered watermark.
+ * (PDExtendedGraphicsState alpha + PdfTextWriter), adapted to a page-centered watermark.
  */
 object PdfWatermarker {
 
@@ -39,14 +39,13 @@ object PdfWatermarker {
         colorArgb: Int = 0xFF8A8A8A.toInt()
     ) {
         PdfBox.ensureInitialized(context)
-        val sanitized = sanitize(text)
-        val c = Color.valueOf(colorArgb)
         val alpha = opacity.coerceIn(0.05f, 1f)
 
         context.contentResolver.openInputStream(sourceUri)?.use { input ->
             PDDocument.load(input).use { doc ->
-                if (sanitized.isNotBlank()) {
-                    val font = PDType1Font.HELVETICA_BOLD
+                if (text.isNotBlank()) {
+                    // Any script: Helvetica Bold for Latin, an embedded face beyond it (Cyrillic was "?").
+                    val writer = PdfTextWriter(doc, PdfFontStyle.Bold)
                     for (i in 0 until doc.numberOfPages) {
                         val page = doc.getPage(i)
                         val boxRect = page.cropBox ?: page.mediaBox ?: continue
@@ -56,7 +55,7 @@ object PdfWatermarker {
                         val originY = boxRect.lowerLeftY
                         // Scale font to the page's short edge so the watermark reads on any size.
                         val fontSize = (min(w, h) * 0.11f).coerceIn(18f, 120f)
-                        val textWidth = font.getStringWidth(sanitized) / 1000f * fontSize
+                        val textWidth = writer.width(text, fontSize)
                         val cx = originX + w / 2f
                         val cy = originY + h / 2f
 
@@ -64,19 +63,14 @@ object PdfWatermarker {
                             cs.saveGraphicsState()
                             val gs = PDExtendedGraphicsState().apply { nonStrokingAlphaConstant = alpha }
                             cs.setGraphicsStateParameters(gs)
-                            cs.setNonStrokingColor(c.red(), c.green(), c.blue())
-                            cs.beginText()
-                            cs.setFont(font, fontSize)
                             if (diagonal) {
-                                // Rotate the text frame 45° about the page centre, then shift so the
-                                // string's midpoint sits on the centre.
-                                cs.setTextMatrix(Matrix.getRotateInstance(Math.toRadians(45.0), cx, cy))
-                                cs.newLineAtOffset(-textWidth / 2f, -fontSize / 2.6f)
+                                // Rotate 45° about the page centre, then shift so the string's
+                                // midpoint sits on the centre.
+                                cs.transform(Matrix.getRotateInstance(Math.toRadians(45.0), cx, cy))
+                                runCatching { writer.drawLine(cs, text, -textWidth / 2f, -fontSize / 2.6f, fontSize, colorArgb) }
                             } else {
-                                cs.newLineAtOffset(cx - textWidth / 2f, cy - fontSize / 2.6f)
+                                runCatching { writer.drawLine(cs, text, cx - textWidth / 2f, cy - fontSize / 2.6f, fontSize, colorArgb) }
                             }
-                            runCatching { cs.showText(sanitized) }
-                            cs.endText()
                             cs.restoreGraphicsState()
                         }
                     }
@@ -143,8 +137,4 @@ object PdfWatermarker {
             }
         } ?: throw IllegalStateException("Unable to read PDF")
     }
-
-    /** PDFBox's WinAnsi encoding rejects unsupported glyphs; keep to Latin-1. */
-    private fun sanitize(text: String): String =
-        buildString { text.forEach { ch -> append(if (ch.code in 32..255) ch else '?') } }
 }

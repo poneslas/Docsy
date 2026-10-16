@@ -14,10 +14,7 @@ import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDStream
 import com.tom_roush.pdfbox.pdmodel.font.PDFont
-import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.tom_roush.pdfbox.pdmodel.font.PDType3Font
-import com.tom_roush.pdfbox.pdmodel.font.PDVectorFont
 import com.tom_roush.pdfbox.pdmodel.graphics.form.PDFormXObject
 import com.tom_roush.pdfbox.pdmodel.graphics.state.RenderingMode
 import com.tom_roush.pdfbox.text.PDFTextStripper
@@ -26,7 +23,6 @@ import com.tom_roush.pdfbox.util.Matrix
 import com.tom_roush.pdfbox.util.Vector
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import kotlin.math.abs
 
 /**
@@ -409,7 +405,7 @@ object PdfTextEditor {
         val twU = first.tw / first.tfs
         val pieces = encode(first.font, text, fonts, tcU, twU)
         if (pieces == null) {
-            val t = traitsOf(first.font)
+            val t = PdfFontStyle.of(first.font)
             return PdfTextImageFallback.draw(doc, cs, text, trm, first.rgb, t.bold, t.italic, t.serif, t.mono)
         }
         val rgb = first.rgb
@@ -553,7 +549,7 @@ object PdfTextEditor {
     /** Codes the document already uses, and fallback faces, for one document's edits. */
     private class FontSource(private val doc: PDDocument, private val codes: CodeBook, private val pageIndex: Int) {
         private var harvested = false
-        private val loaded = HashMap<String, PDFont?>()
+        private val resolver = PdfFontResolver(doc)
 
         fun bytesFor(font: PDFont, ch: String): ByteArray? {
             codes.get(font, ch)?.let { return it }
@@ -577,68 +573,8 @@ object PdfTextEditor {
         /** The closest face to [like] that can draw [ch]. */
         fun fallback(like: PDFont, ch: String): PDFont? = fallbackFor(like, ch)
 
-        fun fallbackFor(like: PDFont?, text: String): PDFont? {
-            val t = traitsOf(like)
-            val std = when {
-                t.mono -> when { t.bold && t.italic -> PDType1Font.COURIER_BOLD_OBLIQUE; t.bold -> PDType1Font.COURIER_BOLD; t.italic -> PDType1Font.COURIER_OBLIQUE; else -> PDType1Font.COURIER }
-                t.serif -> when { t.bold && t.italic -> PDType1Font.TIMES_BOLD_ITALIC; t.bold -> PDType1Font.TIMES_BOLD; t.italic -> PDType1Font.TIMES_ITALIC; else -> PDType1Font.TIMES_ROMAN }
-                else -> when { t.bold && t.italic -> PDType1Font.HELVETICA_BOLD_OBLIQUE; t.bold -> PDType1Font.HELVETICA_BOLD; t.italic -> PDType1Font.HELVETICA_OBLIQUE; else -> PDType1Font.HELVETICA }
-            }
-            if (canShow(std, text)) return std
-            // Beyond Latin-1: embed (subset) a system TrueType face of the same style.
-            val weight = when { t.bold && t.italic -> "BoldItalic"; t.bold -> "Bold"; t.italic -> "Italic"; else -> "Regular" }
-            val names = buildList {
-                if (t.serif) { add("NotoSerif-$weight.ttf"); add("NotoSerif-Regular.ttf") }
-                if (t.mono) { add("DroidSansMono.ttf"); add("CutiveMono.ttf") }
-                add("Roboto-$weight.ttf"); add("RobotoStatic-$weight.ttf"); add("Roboto-Regular.ttf")
-                add("NotoSans-$weight.ttf"); add("NotoSans-Regular.ttf"); add("DroidSans.ttf")
-            }
-            for (n in names.distinct()) {
-                val font = loaded.getOrPut(n) {
-                    val f = File("/system/fonts/$n")
-                    if (f.exists()) runCatching { PDType0Font.load(doc, f) }.getOrNull() else null
-                } ?: continue
-                if (canShow(font, text)) return font
-            }
-            return null
-        }
+        fun fallbackFor(like: PDFont?, text: String): PDFont? = resolver.forText(text, PdfFontStyle.of(like))
     }
 
-    /** Whether [font] can draw every character of [text] (embedded subsets often can't). */
-    private fun canShow(font: PDFont, text: String): Boolean = try {
-        if (font is PDType3Font || font.isVertical) false
-        else {
-            var ok = true
-            var i = 0
-            while (i < text.length && ok) {
-                val cp = text.codePointAt(i)
-                i += Character.charCount(cp)
-                val bytes = font.encode(String(Character.toChars(cp)))
-                if (cp != ' '.code) {
-                    var code = 0
-                    for (b in bytes) code = (code shl 8) or (b.toInt() and 0xFF)
-                    if (font is PDVectorFont && !font.hasGlyph(code)) ok = false
-                    else if (font.getWidth(code) <= 0f) ok = false
-                }
-            }
-            ok
-        }
-    } catch (_: Exception) {
-        false
-    }
-
-    private class Traits(val bold: Boolean, val italic: Boolean, val serif: Boolean, val mono: Boolean)
-
-    private fun traitsOf(font: PDFont?): Traits {
-        val name = (font?.name ?: "").substringAfter('+').lowercase()
-        val d = font?.fontDescriptor
-        val bold = listOf("bold", "black", "heavy", "semibold", "demi").any { name.contains(it) } ||
-            d?.isForceBold == true || (d?.fontWeight ?: 400f) >= 600f
-        val italic = name.contains("italic") || name.contains("oblique") || d?.isItalic == true || (d?.italicAngle ?: 0f) != 0f
-        val mono = listOf("courier", "mono", "consol", "menlo").any { name.contains(it) } || d?.isFixedPitch == true
-        val serif = !mono && (d?.isSerif == true ||
-            listOf("times", "serif", "georgia", "garamond", "cambria", "book", "minion", "palatino", "baskerville").any { name.contains(it) } &&
-            !name.contains("sans"))
-        return Traits(bold, italic, serif, mono)
-    }
+    private fun canShow(font: PDFont, text: String): Boolean = PdfFontResolver.canShow(font, text)
 }
