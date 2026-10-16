@@ -53,6 +53,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.FormatListNumbered
 import androidx.compose.material.icons.rounded.Gesture
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -726,11 +727,6 @@ internal fun PdfViewerBottomToolbar(
                     }
                 }
 
-                if (hasEdits && !isExporting) {
-                    LiquidButton(onClick = onShowSaveDialog, backdrop = backdrop, tint = LiquidGlassColors.Blue) {
-                        BasicText(stringResource(R.string.viewer_save_edits), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                    }
-                }
             }
             }
             }
@@ -803,6 +799,22 @@ internal fun PdfViewerBottomToolbar(
                     }
                 }
                 Spacer(Modifier.weight(1f))
+                // Save sits beside open/share, and only while there is something to save: the
+                // first place people look for it, instead of the end of the scrolling tool row.
+                AnimatedVisibility(
+                    visible = hasEdits && !isExporting,
+                    enter = fadeIn(tween(160)),
+                    exit = fadeOut(tween(120))
+                ) {
+                    LiquidIconButton(
+                        onClick = onShowSaveDialog,
+                        backdrop = backdrop,
+                        modifier = Modifier.size(ReaderControlSize),
+                        tint = LiquidGlassColors.Blue
+                    ) {
+                        Icon(Icons.Rounded.Save, stringResource(R.string.viewer_save_edits), Modifier.size(20.dp), Color.White)
+                    }
+                }
                 // Reserve the final slot for ShareMorph, which is layered over this row.
                 Spacer(Modifier.size(ReaderControlSize))
             }
