@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: имя вместо «ClearPDF» везде, где его видят (по-русски «Доки», в остальных языках «Docsy»). -->
+<resources>
+    <string name="app_name">Доки</string>
+    <string name="onboarding_welcome_title">Добро пожаловать в Доки</string>
+    <string name="home_title">Доки</string>
+    <string name="settings_open_source">Открытый код. MIT.</string>
+    <string name="onboarding_ready_subtitle">Доки готовы к работе.\nВсе ваши документы всегда остаются приватными.</string>
+    <string name="settings_default_path">Загрузки</string>
+    <string name="star_prompt_title">Поддержите Доки</string>
+    <string name="star_prompt_message">Доки — проект с открытым исходным кодом на GitHub.\nХотите поставить звезду проекту?</string>
+    <string name="whats_new_window_desc">Файлы из WhatsApp или файлового менеджера открываются в отдельном окне Доков.</string>
+    <string name="whats_new_lang_desc">Доки теперь говорят по-арабски, а арабский текст копируется и ищется в правильном порядке.</string>
+    <string name="restart_title">Перезапустить Доки?</string>
+    <string name="restart_body">Этот язык читается в другую сторону. Перезапустите Доки, чтобы все экраны перестроились.</string>
+    <string name="about_fork_of">Форк ClearPDF от Chethan616 ↗</string>
+</resources>

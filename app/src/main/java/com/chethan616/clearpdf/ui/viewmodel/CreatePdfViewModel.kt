@@ -124,7 +124,7 @@ class CreatePdfViewModel(private val createPdfUseCase: CreatePdfUseCase) : ViewM
 
         viewModelScope.launch {
             try {
-                val fileName = targetFileName.ifBlank { "ClearPDF_Document.pdf" }
+                val fileName = targetFileName.ifBlank { "Docsy_Document.pdf" }
                 val outputUri = withContext(Dispatchers.IO) {
                     createOutputUri(context, fileName, overrideUri)
                 } ?: throw Exception("Failed to create output file")

@@ -1,0 +1,3 @@
+# Доки: свой README. Правки README из ClearPDF при слиянии не применяются.
+# Один раз в клоне: git config merge.ours.driver true
+readme.md merge=ours

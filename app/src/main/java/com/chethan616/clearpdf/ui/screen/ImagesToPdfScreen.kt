@@ -217,7 +217,7 @@ fun ImagesToPdfScreen(
     // In-window glass (not a Dialog window) so it refracts the live screen.
     LiquidSaveDialog(
         visible = showSaveDialog,
-        initialFileName = "ClearPDF_Images",
+        initialFileName = "Docsy_Images",
         backdrop = screenBackdrop.glass,
         uiSensor = uiSensor,
         onDismiss = { showSaveDialog = false },

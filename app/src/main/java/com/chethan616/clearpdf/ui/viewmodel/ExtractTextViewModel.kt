@@ -148,7 +148,7 @@ class ExtractTextViewModel(
                     words.map { InvisibleWord(it.text, it.left, it.top, it.right, it.bottom) }
                 }
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Searchable_$ts.pdf"
+                val fileName = "Docsy_Searchable_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = createOutputUri(context, fileName)
                 withContext(Dispatchers.IO) {

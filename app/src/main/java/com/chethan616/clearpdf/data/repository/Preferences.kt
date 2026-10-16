@@ -296,7 +296,7 @@ object GitHubStarPromptManager {
     private const val FAILURE_QUIET_MS = 10L * 60L * 1000L
     private val SNOOZE_DAYS = intArrayOf(21, 60)
 
-    const val REPO_URL: String = "https://github.com/Chethan616/ClearPDF"
+    const val REPO_URL: String = "https://github.com/poneslas/Docsy"
 
     /** Something went right in this launch; the app may ask at its next calm moment. */
     @Volatile private var positiveMoment = false

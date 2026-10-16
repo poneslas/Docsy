@@ -560,7 +560,7 @@ private suspend fun savePagesAsPdf(context: Context, uris: List<Uri>, filter: Sc
 
             // Save to Downloads
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "ClearPDF_Scan_$timeStamp.pdf"
+            val fileName = "Docsy_Scan_$timeStamp.pdf"
 
             val pdfUri = createScanOutputUri(context, fileName)
             val outputStream = context.contentResolver.openOutputStream(pdfUri)

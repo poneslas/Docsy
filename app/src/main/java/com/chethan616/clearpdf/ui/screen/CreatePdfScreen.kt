@@ -479,7 +479,7 @@ fun CreatePdfScreen(
     // In-window glass (not a Dialog window) so it refracts the live screen.
     LiquidSaveDialog(
         visible = showSaveDialog,
-        initialFileName = "ClearPDF_Document.pdf",
+        initialFileName = "Docsy_Document.pdf",
         backdrop = screenBackdrop.glass,
         uiSensor = uiSensor,
         onDismiss = { showSaveDialog = false },

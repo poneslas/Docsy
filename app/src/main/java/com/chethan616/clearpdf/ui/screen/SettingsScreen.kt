@@ -83,6 +83,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import com.chethan616.clearpdf.ui.components.liquidRowClick
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -577,10 +580,23 @@ fun SettingsScreen(
                 // the app", not a topic of its own, and folding it in here removes the single
                 // heaviest remaining glass surface (the longest scroll content on the screen).
                 if (p == PageAbout) SettingsSection(backdrop, uiSensor, Modifier, padding = 24.dp, horizontalAlignment = Alignment.CenterHorizontally) {
-                    AccentIconTile(Icons.Rounded.Info, LiquidGlassColors.Blue, size = 56, iconSize = 28)
-                    BasicText("ClearPDF", style = TextStyle(ink, 20.sp, FontWeight.Bold))
+                    // Доки: своя иконка и честная строка «форк ClearPDF» со ссылкой на оригинал.
+                    Box(
+                        Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(colorResource(R.color.doki_icon_background)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.foundation.Image(painterResource(R.drawable.doki_icon_foreground), null, Modifier.fillMaxSize().graphicsLayer { scaleX = 1.45f; scaleY = 1.45f })
+                    }
+                    BasicText(stringResource(R.string.app_name), style = TextStyle(ink, 20.sp, FontWeight.Bold))
                     BasicText(versionLabel, style = TextStyle(sub, 13.sp))
-                    BasicText(stringResource(R.string.settings_made_by), style = TextStyle(sub, 13.sp, textAlign = TextAlign.Center))
+                    BasicText(
+                        stringResource(R.string.about_fork_of),
+                        style = TextStyle(LiquidGlassColors.Blue, 13.sp, FontWeight.Medium, textAlign = TextAlign.Center),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .liquidRowClick { openExternalLink(context, UpstreamRepoUrl) }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                     Spacer(Modifier.height(4.dp))
                     ToolPrimaryButton(
                         text = stringResource(R.string.settings_star_github),
@@ -650,6 +666,9 @@ fun SettingsScreen(
 // read as "the screen is still loading" rather than a snappy tab switch.
 private const val SettingsStaggerStepMs = 20
 
+/** Доки: оригинал, от которого сделан форк. */
+private const val UpstreamRepoUrl = "https://github.com/Chethan616/ClearPDF"
+
 private const val PageIndex = 0
 
 /** Whether a Settings sub-page (Appearance, Language…) is open — the app hides its tab bar then. */
@@ -704,7 +723,7 @@ private fun GlassTuningPage(
         ) {
             Column(Modifier.matchParentSize().padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
                 repeat(4) {
-                    BasicText("ClearPDF  •  Aa Bb Cc  •  0123456789", style = TextStyle(Color.White.copy(0.9f), 13.sp, FontWeight.Bold), maxLines = 1)
+                    BasicText(stringResource(R.string.app_name) + "  •  Aa Bb Cc  •  0123456789", style = TextStyle(Color.White.copy(0.9f), 13.sp, FontWeight.Bold), maxLines = 1)
                 }
             }
         }
@@ -1015,7 +1034,9 @@ private val OpenSourceCredits = listOf(
     Credit("GPUImage for Android", "CyberAgent, Inc.", "Apache License 2.0 — image editor adjustments and filters", "https://github.com/cats-oss/android-gpuimage"),
     Credit("ML Kit Subject Segmentation", "Google", "Google APIs Terms — optional background removal via Play services", "https://developers.google.com/ml-kit/vision/subject-segmentation"),
     Credit("LibreOffice", "The Document Foundation", "Mozilla Public License 2.0 — optional Office engine (downloaded on request, not bundled)", "https://www.libreoffice.org/about-us/licenses/"),
-    Credit("Pdf_Tools", "Karna14314", "PDF viewer zoom/pan reference", "https://github.com/Karna14314/Pdf_Tools")
+    Credit("Pdf_Tools", "Karna14314", "PDF viewer zoom/pan reference", "https://github.com/Karna14314/Pdf_Tools"),
+    // Доки: основа приложения.
+    Credit("ClearPDF", "Chethan616", "MIT License — the app Docsy is built on", "https://github.com/Chethan616/ClearPDF")
 )
 
 @Composable

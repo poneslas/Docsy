@@ -195,7 +195,7 @@ class SplitPdfViewModel(private val splitter: PdfSplitter) : ViewModel() {
         viewModelScope.launch {
             try {
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
-                val outUri = createOutputUri(context, "ClearPDF_Extract_${System.currentTimeMillis()}.pdf")
+                val outUri = createOutputUri(context, "Docsy_Extract_${System.currentTimeMillis()}.pdf")
                 val source = PdfDocument(uri = srcUri, name = _uiState.value.sourceFileName)
                 withContext(AppDispatchers.pdf) { splitter.extractPages(context, source, pages, outUri) }
                 RecentFilesManager.addRecent(context, RecentFile(

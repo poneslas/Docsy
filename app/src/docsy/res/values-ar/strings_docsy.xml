@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: имя вместо «ClearPDF» везде, где его видят (по-русски «Доки», в остальных языках «Docsy»). -->
+<resources>
+    <string name="app_name">Docsy</string>
+    <string name="onboarding_welcome_title">مرحبًا بك في Docsy</string>
+    <string name="home_title">Docsy</string>
+    <string name="settings_open_source">مفتوح المصدر. MIT.</string>
+    <string name="onboarding_ready_subtitle">Docsy جاهز للاستخدام.\nكل مستنداتك، بخصوصية دائمًا.</string>
+    <string name="settings_default_path">التنزيلات / Docsy</string>
+    <string name="star_prompt_title">ادعم Docsy</string>
+    <string name="star_prompt_message">Docsy مفتوح المصدر على GitHub.\nهل تود وضع نجمة للمشروع؟</string>
+    <string name="whats_new_window_desc">الملفات المفتوحة من واتساب أو مدير الملفات تُفتح في نافذة Docsy منفصلة.</string>
+    <string name="whats_new_lang_desc">أصبح Docsy يتحدث العربية، ويُنسخ النص العربي ويُبحث فيه بالترتيب الصحيح.</string>
+    <string name="restart_title">إعادة تشغيل Docsy؟</string>
+    <string name="restart_body">تُقرأ هذه اللغة في الاتجاه الآخر. أعد تشغيل Docsy لتتبدّل كل الشاشات.</string>
+    <string name="about_fork_of">نسخة مشتقة من ClearPDF بواسطة Chethan616 ↗</string>
+</resources>

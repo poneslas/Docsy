@@ -89,7 +89,7 @@ class ImageToolsViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     savedToGallery = ok,
-                    resultMessage = if (ok) "Saved to Pictures/ClearPDF" else it.resultMessage,
+                    resultMessage = if (ok) "Saved to Pictures/Docsy" else it.resultMessage,
                     errorMessage = if (!ok) "Couldn't save to gallery" else null
                 )
             }

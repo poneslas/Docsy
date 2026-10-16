@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: имя вместо «ClearPDF» везде, где его видят (по-русски «Доки», в остальных языках «Docsy»). -->
+<resources>
+    <string name="app_name">Docsy</string>
+    <string name="onboarding_welcome_title">Benvenuto su Docsy</string>
+    <string name="home_title">Docsy</string>
+    <string name="settings_open_source">Codice aperto. MIT.</string>
+    <string name="onboarding_ready_subtitle">Docsy è pronto per l\'uso.\nTutti i tuoi documenti, sempre privati.</string>
+    <string name="settings_default_path">Downloads</string>
+    <string name="star_prompt_title">Sostieni Docsy</string>
+    <string name="star_prompt_message">Docsy è open source su GitHub.\nVorresti mettere una stella al progetto?</string>
+    <string name="whats_new_window_desc">I file aperti da WhatsApp o da un gestore di file si aprono in una finestra separata di Docsy.</string>
+    <string name="whats_new_lang_desc">Docsy ora parla arabo, e il testo arabo si copia e si cerca nell\'ordine giusto.</string>
+    <string name="restart_title">Riavviare Docsy?</string>
+    <string name="restart_body">Questa lingua si legge nell\'altro verso. Riavvia Docsy perché tutte le schermate si adeguino.</string>
+    <string name="about_fork_of">Fork di ClearPDF di Chethan616 ↗</string>
+</resources>

@@ -152,7 +152,7 @@ class MergePdfViewModel(private val mergePdfUseCase: MergePdfUseCase) : ViewMode
 
     private fun createOutputUri(context: Context, prefix: String): Uri {
         val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "ClearPDF_${prefix}_$ts.pdf"
+        val fileName = "Docsy_${prefix}_$ts.pdf"
 
         val customUri = SaveLocationManager.getSaveUri(context)
         if (customUri != null) {

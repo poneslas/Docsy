@@ -151,7 +151,7 @@ class CompressPdfViewModel(private val compressPdfUseCase: CompressPdfUseCase) :
             try {
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Compressed_$ts.pdf"
+                val fileName = "Docsy_Compressed_$ts.pdf"
                 val outUri = createOutputUri(context, fileName)
                 val source = PdfDocument(uri = srcUri, name = _uiState.value.sourceFileName, sizeBytes = _uiState.value.originalSizeBytes)
                 val result = withContext(Dispatchers.IO) {

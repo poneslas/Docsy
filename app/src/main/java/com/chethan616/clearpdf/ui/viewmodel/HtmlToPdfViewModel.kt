@@ -80,7 +80,7 @@ class HtmlToPdfViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Web_$ts.pdf"
+                val fileName = "Docsy_Web_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = withContext(Dispatchers.IO) { createOutputUri(context, fileName) }
                 val html = _uiState.value.html

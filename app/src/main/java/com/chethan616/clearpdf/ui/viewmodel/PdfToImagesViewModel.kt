@@ -94,7 +94,7 @@ class PdfToImagesViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     savedCount = count,
-                    resultMessage = if (count > 0) "Saved $count image${if (count == 1) "" else "s"} to Pictures/ClearPDF" else it.resultMessage,
+                    resultMessage = if (count > 0) "Saved $count image${if (count == 1) "" else "s"} to Pictures/Docsy" else it.resultMessage,
                     errorMessage = if (count == 0) "Couldn't save to gallery" else null
                 )
             }

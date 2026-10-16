@@ -60,7 +60,7 @@ class PageNumbersViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Numbered_$ts.pdf"
+                val fileName = "Docsy_Numbered_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = createOutputUri(context, fileName)
                 val s = _uiState.value

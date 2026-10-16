@@ -204,13 +204,13 @@ object ImageIo {
         return file
     }
 
-    /** Copies an encoded file into Pictures/ClearPDF. Returns the new content Uri. */
+    /** Copies an encoded file into Pictures/Docsy. Returns the new content Uri. */
     fun publishToGallery(context: Context, file: File, format: ExportFormat): Uri? {
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
             put(MediaStore.Images.Media.MIME_TYPE, format.mime)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/ClearPDF")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Docsy")
             }
         }
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)

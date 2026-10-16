@@ -42,6 +42,8 @@ android {
 
     defaultConfig {
         applicationId = "com.chethan616.clearpdf"
+        // Доки: ставится рядом с ClearPDF, а не поверх него.
+        applicationIdSuffix = ".docsy"
         minSdk = 23
         targetSdk = 36
         // Keep this a literal: F-Droid's update checker reads it from this file.
@@ -118,6 +120,9 @@ android {
     sourceSets {
         getByName("play").kotlin.srcDir("src/gms/java")
         getByName("foss").kotlin.srcDir("src/gms/java")
+        // Доки: своё имя и иконка. Ресурсы build type перекрывают main.
+        getByName("debug").res.srcDir("src/docsy/res")
+        getByName("release").res.srcDir("src/docsy/res")
     }
     // AGP can't link a dynamic feature against ABI-split APK outputs, and the feature is only
     // ever delivered through a Play bundle anyway — so register it for bundle builds only.

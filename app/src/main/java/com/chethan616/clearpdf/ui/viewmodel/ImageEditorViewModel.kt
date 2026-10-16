@@ -116,7 +116,7 @@ class ImageEditorViewModel(app: Application) : AndroidViewModel(app) {
         val bgRestore: Boolean = false,
         val bgBrushWidth: Float = 0.05f,
         // watermark / export
-        val watermark: WatermarkParams = WatermarkParams(text = "ClearPDF"),
+        val watermark: WatermarkParams = WatermarkParams(text = "Docsy"),
         val export: ExportSettings = ExportSettings(),
         val exif: List<ImageIo.ExifEntry> = emptyList(),
         val exporting: Boolean = false,
@@ -543,7 +543,7 @@ class ImageEditorViewModel(app: Application) : AndroidViewModel(app) {
     fun saveToGallery(onSaved: (() -> Unit)? = null) = export { file ->
         val uri = withContext(Dispatchers.IO) { ImageIo.publishToGallery(context, file, _state.value.export.format) }
         if (uri != null && onSaved != null) withContext(Dispatchers.Main) { onSaved() }
-        if (uri != null) "Saved to Pictures/ClearPDF" else "Couldn't save image"
+        if (uri != null) "Saved to Pictures/Docsy" else "Couldn't save image"
     }
 
     fun share(onShare: (Uri, String) -> Unit) = export { file ->

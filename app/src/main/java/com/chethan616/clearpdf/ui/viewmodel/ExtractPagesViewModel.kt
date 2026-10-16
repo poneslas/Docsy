@@ -77,7 +77,7 @@ class ExtractPagesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Extracted_$ts.pdf"
+                val fileName = "Docsy_Extracted_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = createOutputUri(context, fileName)
                 val source = PdfDocument(uri = src, name = _uiState.value.sourceName, pageCount = _uiState.value.pageCount)

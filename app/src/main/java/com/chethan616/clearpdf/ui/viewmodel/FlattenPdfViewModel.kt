@@ -55,7 +55,7 @@ class FlattenPdfViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Flattened_$ts.pdf"
+                val fileName = "Docsy_Flattened_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = createOutputUri(context, fileName)
                 val fields = withContext(Dispatchers.IO) { PdfFlattener.flatten(context, src, outUri) }

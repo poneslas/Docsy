@@ -76,7 +76,7 @@ class FillFormViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "ClearPDF_Filled_$ts.pdf"
+                val fileName = "Docsy_Filled_$ts.pdf"
                 val saveLabel = SaveLocationManager.getSavePathDisplay(context)
                 val outUri = withContext(Dispatchers.IO) { createOutputUri(context, fileName) }
                 val values = _uiState.value.fields.associate { it.name to it.value }
