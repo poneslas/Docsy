@@ -294,9 +294,9 @@ fun HomeScreen(
                     contentPadding = contentPadding,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Доки: «Вышла версия …» сверху, когда есть обновление (только сборка с GitHub).
+                    // Доки: «Вышла версия …» сверху, когда есть обновление; тап ведёт в «О приложении».
                     if (!searchActive) item(key = "update", contentType = "update") {
-                        com.chethan616.clearpdf.update.UpdateCard(backdrop, uiSensor, Modifier.fillMaxWidth())
+                        com.chethan616.clearpdf.update.UpdateRow(backdrop, uiSensor, Modifier.fillMaxWidth())
                     }
 
                     // Welcome card. It collapses while searching so results own the fold.

@@ -7,6 +7,13 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import com.chethan616.clearpdf.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
@@ -26,6 +33,34 @@ data class UpdateInfo(
     fun notes(language: String): String = if (language == "ru") notesRu else notesEn
 }
 
+/** Where an update stands, shared by every place that shows it (Home, a document, About). */
+sealed interface UpdateState {
+    /** Nothing checked yet in this run. */
+    data object Unknown : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+    data object CheckFailed : UpdateState
+    data class Available(val info: UpdateInfo) : UpdateState
+    data class Downloading(val info: UpdateInfo, val percent: Int) : UpdateState
+    /**
+     * Downloaded and checked. Android's installer is open, or — with [needsPermission] — Android
+     * first wants "install unknown apps" allowed for Docsy. Kept until Docsy restarts as the new
+     * version, so a cancelled installer can be opened again without downloading twice.
+     */
+    data class ReadyToInstall(val info: UpdateInfo, val file: File, val needsPermission: Boolean) : UpdateState
+    data class DownloadFailed(val info: UpdateInfo, val badFile: Boolean) : UpdateState
+}
+
+/** The newer version an [UpdateState] is about, if any. */
+val UpdateState.newVersion: UpdateInfo?
+    get() = when (this) {
+        is UpdateState.Available -> info
+        is UpdateState.Downloading -> info
+        is UpdateState.ReadyToInstall -> info
+        is UpdateState.DownloadFailed -> info
+        else -> null
+    }
+
 /**
  * Docsy updates itself from its GitHub releases, the way Гига Писарь does: no server and no
  * tracking. Once a day the app reads a small update.json in the repository; a newer version
@@ -38,6 +73,15 @@ object Updates {
     private const val TRUSTED_PREFIX = "https://github.com/poneslas/Docsy/releases/download/"
     private const val PREFS = "docsy_updates"
     private const val CHECK_EVERY_MS = 24 * 60 * 60 * 1000L
+
+    private val _state = MutableStateFlow<UpdateState>(UpdateState.Unknown)
+    val state: StateFlow<UpdateState> = _state.asStateFlow()
+
+    /** "Open About": set by the Home row and the document pill, consumed by the app and Settings. */
+    val openAbout = MutableStateFlow(false)
+
+    /** Downloads outlive the screen that started them. */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -56,7 +100,7 @@ object Updates {
 
     /** The newer version found by the last check, if any (survives restarts). */
     fun pending(context: Context): UpdateInfo? {
-        if (!supported || !autoCheck(context)) return null
+        if (!supported) return null
         val raw = prefs(context).getString("latest", null) ?: return null
         val info = runCatching { parse(JSONObject(raw)) }.getOrNull() ?: return null
         // APKs only ever come from this repository's releases.
@@ -67,8 +111,8 @@ object Updates {
     fun due(context: Context): Boolean =
         supported && autoCheck(context) && System.currentTimeMillis() - prefs(context).getLong("checkedAt", 0) > CHECK_EVERY_MS
 
-    /** Blocking: reads update.json; returns a newer version or null. Never throws. */
-    fun check(context: Context): UpdateInfo? = try {
+    /** Blocking: reads update.json; a newer version, null when this is the latest. Throws when offline. */
+    private fun fetch(context: Context): UpdateInfo? {
         val connection = URL(MANIFEST_URL).openConnection() as HttpURLConnection
         connection.connectTimeout = 10_000
         connection.readTimeout = 10_000
@@ -76,10 +120,71 @@ object Updates {
         val text = connection.inputStream.bufferedReader().use { it.readText() }
         connection.disconnect()
         prefs(context).edit().putLong("checkedAt", System.currentTimeMillis()).putString("latest", text).apply()
-        pending(context)
-    } catch (_: Exception) {
-        null
+        return pending(context)
     }
+
+    /** Busy with an update the user started: a check must not replace its state. */
+    private fun busy() = _state.value.let { it is UpdateState.Downloading || it is UpdateState.ReadyToInstall }
+
+    /** On every app start: show what an earlier check found, and look again once a day (if allowed). */
+    fun onAppResume(context: Context) {
+        if (!supported) return
+        val app = context.applicationContext
+        // Back from the "install unknown apps" switch: carry on with the install.
+        (_state.value as? UpdateState.ReadyToInstall)?.takeIf { it.needsPermission && canInstall(app) }?.let {
+            _state.value = it.copy(needsPermission = false)
+            install(app, it.file)
+        }
+        if (_state.value == UpdateState.Unknown && autoCheck(app)) pending(app)?.let { _state.value = UpdateState.Available(it) }
+        if (busy() || !due(app)) return
+        scope.launch {
+            val found = runCatching { fetch(app) }.getOrNull() ?: return@launch
+            if (!busy()) _state.value = UpdateState.Available(found)
+        }
+    }
+
+    /** About: always look now, whatever the daily switch says (opening About asks for it). */
+    fun checkNow(context: Context) {
+        if (!supported || busy()) return
+        val app = context.applicationContext
+        _state.value = UpdateState.Checking
+        scope.launch {
+            val result = runCatching { fetch(app) }
+            if (busy()) return@launch
+            _state.value = result.fold(
+                onSuccess = { found -> found?.let { UpdateState.Available(it) } ?: UpdateState.UpToDate },
+                onFailure = { UpdateState.CheckFailed }
+            )
+        }
+    }
+
+    /** "Update": download, check, then Android's installer (or its permission page first). */
+    fun startUpdate(context: Context) {
+        val info = _state.value.newVersion ?: return
+        val app = context.applicationContext
+        val ready = (_state.value as? UpdateState.ReadyToInstall)?.file?.takeIf { it.exists() }
+        if (ready != null) { proceed(app, info, ready); return }
+        if (_state.value is UpdateState.Downloading) return
+        _state.value = UpdateState.Downloading(info, 0)
+        scope.launch {
+            try {
+                val file = download(app, info) { _state.value = UpdateState.Downloading(info, it) }
+                proceed(app, info, file)
+            } catch (e: Exception) {
+                _state.value = UpdateState.DownloadFailed(info, badFile = e is BadUpdateFile)
+            }
+        }
+    }
+
+    private fun proceed(context: Context, info: UpdateInfo, file: File) {
+        val allowed = canInstall(context)
+        _state.value = UpdateState.ReadyToInstall(info, file, needsPermission = !allowed)
+        if (allowed) install(context, file) else openInstallPermission(context)
+    }
+
+    /** The document pill shows once per version. */
+    fun pillShown(context: Context, info: UpdateInfo): Boolean = prefs(context).getLong("pillShownCode", 0) >= info.versionCode
+    fun markPillShown(context: Context, info: UpdateInfo) = prefs(context).edit().putLong("pillShownCode", info.versionCode).apply()
 
     /** The APK for this phone: arm64 when the CPU is 64-bit ARM (almost every phone), else universal. */
     private fun parse(json: JSONObject): UpdateInfo {
@@ -102,7 +207,7 @@ object Updates {
      * Blocking: downloads the APK into the cache, reporting 0..100, and checks its SHA-256.
      * Returns the file; throws when the download breaks or the file doesn't match.
      */
-    fun download(context: Context, info: UpdateInfo, progress: (Int) -> Unit): File {
+    private fun download(context: Context, info: UpdateInfo, progress: (Int) -> Unit): File {
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
         dir.listFiles()?.forEach { it.delete() } // old downloads
         val file = File(dir, "Docsy-${info.version}.apk")

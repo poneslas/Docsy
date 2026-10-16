@@ -10,4 +10,9 @@
     <string name="update_no_network">فشل التنزيل. تحقّق من الإنترنت وحاول مرة أخرى.</string>
     <string name="update_setting">البحث عن تحديثات</string>
     <string name="update_setting_desc">مرة يوميًا، التحقق على GitHub من وجود إصدار جديد</string>
+    <string name="update_checking">جارٍ البحث عن تحديثات…</string>
+    <string name="update_latest">لديك أحدث إصدار</string>
+    <string name="update_check_failed">تعذّر التحقق. لا يوجد إنترنت؟</string>
+    <string name="update_check_again">تحقّق مرة أخرى</string>
+    <string name="update_pill">Docsy %1$s · التفاصيل</string>
 </resources>

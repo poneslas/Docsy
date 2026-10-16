@@ -10,4 +10,9 @@
     <string name="update_no_network">Не скачалось. Проверьте интернет и попробуйте ещё раз.</string>
     <string name="update_setting">Проверять обновления</string>
     <string name="update_setting_desc">Раз в сутки смотреть на GitHub, не вышла ли новая версия</string>
+    <string name="update_checking">Проверяю обновления…</string>
+    <string name="update_latest">У вас последняя версия</string>
+    <string name="update_check_failed">Не удалось проверить. Нет интернета?</string>
+    <string name="update_check_again">Проверить ещё раз</string>
+    <string name="update_pill">Доки %1$s · Подробнее</string>
 </resources>

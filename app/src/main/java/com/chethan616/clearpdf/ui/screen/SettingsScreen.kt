@@ -226,6 +226,12 @@ fun SettingsScreen(
             page = PageOffice
         }
     }
+    // Доки: строка обновления на главном и подсказка в документе открывают «О приложении».
+    LaunchedEffect(Unit) {
+        com.chethan616.clearpdf.update.Updates.openAbout.collect { open ->
+            if (open) { page = PageAbout; com.chethan616.clearpdf.update.Updates.openAbout.value = false }
+        }
+    }
     BackHandler(enabled = page != PageIndex) { page = PageIndex }
     val pageTitle = when (page) {
         PageAppearance -> stringResource(R.string.settings_appearance)
@@ -611,6 +617,8 @@ fun SettingsScreen(
                             .liquidRowClick { openExternalLink(context, UpstreamRepoUrl) }
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
+                    // Доки: всё про обновление — здесь. При входе всегда проверяем.
+                    com.chethan616.clearpdf.update.UpdateAboutSection(backdrop, Modifier.padding(vertical = 4.dp))
                     Spacer(Modifier.height(4.dp))
                     ToolPrimaryButton(
                         text = stringResource(R.string.settings_star_github),

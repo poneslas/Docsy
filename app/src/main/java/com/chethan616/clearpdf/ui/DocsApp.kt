@@ -477,6 +477,9 @@ fun DocsApp(shortcutRoute: String? = null, incomingPdfUri: android.net.Uri? = nu
                     )
                 }
 
+                // Доки: обновления — проверка раз в сутки, подсказка в документе, переход в «О приложении».
+                com.chethan616.clearpdf.update.UpdateHost(currentRoute, contentBackdrop) { onBottomTabSelected(2) }
+
                 // Star prompt — in-window liquid glass over the live screen (wallpaper + content).
                 // It used to be a solid card in a Dialog window, which cannot sample anything.
                 run {
