@@ -239,3 +239,10 @@ dependencies {
     "fossImplementation"(libs.androidx.work.runtime.ktx)
     "fossImplementation"(libs.xz)
 }
+
+// Доки: своя версия, независимо от версии ClearPDF внутри.
+// versionCode = мажор × 10000 + минор × 100 + патч, только растёт.
+android.defaultConfig {
+    versionCode = 10000
+    versionName = "1.0"
+}
