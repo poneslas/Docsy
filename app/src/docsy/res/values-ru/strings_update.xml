@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: самообновление из релизов на GitHub. -->
+<resources>
+    <string name="update_title">Вышла версия %1$s</string>
+    <string name="update_button">Обновить</string>
+    <string name="update_downloading">Скачиваю: %1$d%%</string>
+    <string name="update_allow_install">Разрешите Докам устанавливать приложения: это нужно один раз. Потом вернитесь сюда.</string>
+    <string name="update_allow_button">Продолжить установку</string>
+    <string name="update_bad_file">Файл скачался с ошибкой. Попробуйте ещё раз.</string>
+    <string name="update_no_network">Не скачалось. Проверьте интернет и попробуйте ещё раз.</string>
+    <string name="update_setting">Проверять обновления</string>
+    <string name="update_setting_desc">Раз в сутки смотреть на GitHub, не вышла ли новая версия</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: самообновление из релизов на GitHub. -->
+<resources>
+    <string name="update_title">Saiu a versão %1$s</string>
+    <string name="update_button">Atualizar</string>
+    <string name="update_downloading">A transferir: %1$d%%</string>
+    <string name="update_allow_install">Permita que o Docsy instale apps: só é preciso uma vez. Depois volte aqui.</string>
+    <string name="update_allow_button">Continuar a instalação</string>
+    <string name="update_bad_file">O ficheiro chegou com erro. Tente outra vez.</string>
+    <string name="update_no_network">A transferência falhou. Verifique a internet e tente outra vez.</string>
+    <string name="update_setting">Procurar atualizações</string>
+    <string name="update_setting_desc">Uma vez por dia, ver no GitHub se há versão nova</string>
+</resources>

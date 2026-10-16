@@ -52,6 +52,7 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Tune
@@ -620,6 +621,19 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     BasicText(stringResource(R.string.settings_open_source), style = TextStyle(sub.copy(0.7f), 11.sp, textAlign = TextAlign.Center))
+                    // Доки: раз в сутки смотреть, не вышла ли новая версия (только сборка с GitHub).
+                    if (com.chethan616.clearpdf.update.Updates.supported) {
+                        SettingsDivider(isLight)
+                        var autoUpdate by remember { mutableStateOf(com.chethan616.clearpdf.update.Updates.autoCheck(context)) }
+                        SettingsToggleRow(
+                            icon = Icons.Rounded.SystemUpdate,
+                            title = stringResource(R.string.update_setting),
+                            desc = stringResource(R.string.update_setting_desc),
+                            checked = autoUpdate,
+                            onCheckedChange = { autoUpdate = it; com.chethan616.clearpdf.update.Updates.setAutoCheck(context, it) },
+                            backdrop = backdrop
+                        )
+                    }
                 }
 
                 if (p == PageLicenses) SettingsSection(backdrop, uiSensor, Modifier) {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: самообновление из релизов на GitHub. -->
+<resources>
+    <string name="update_title">Version %1$s is out</string>
+    <string name="update_button">Update</string>
+    <string name="update_downloading">Downloading: %1$d%%</string>
+    <string name="update_allow_install">Let Docsy install apps: this is needed once. Then come back here.</string>
+    <string name="update_allow_button">Continue installing</string>
+    <string name="update_bad_file">The file downloaded with an error. Try again.</string>
+    <string name="update_no_network">The download failed. Check the internet and try again.</string>
+    <string name="update_setting">Check for updates</string>
+    <string name="update_setting_desc">Once a day, look on GitHub for a new version</string>
+</resources>

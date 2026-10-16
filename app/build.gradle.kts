@@ -246,3 +246,11 @@ android.defaultConfig {
     versionCode = 10000
     versionName = "1.0"
 }
+
+// Доки обновляются сами только в сборке с GitHub (foss). Google Play и F-Droid обновляют приложения сами.
+android.buildFeatures.buildConfig = true
+android.productFlavors.all {
+    buildConfigField("boolean", "SELF_UPDATE", if (name == "foss") "true" else "false")
+}
+android.sourceSets.getByName("debug").manifest.srcFile("src/docsy/AndroidManifest.xml")
+android.sourceSets.getByName("release").manifest.srcFile("src/docsy/AndroidManifest.xml")
