@@ -1,20 +1,20 @@
 {
-  "version": "1.1",
-  "versionCode": 10100,
+  "version": "1.2",
+  "versionCode": 10200,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.1/Docsy-1.1-arm64.apk",
-      "sha256": "ad86912067762ceb006a711737e72cbc550b3166b851752cfa5e24bf10a20bef",
-      "size": 33866015
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.2/Docsy-1.2-arm64.apk",
+      "sha256": "239f591eaed65e9281d46543a3c0428fc5f6e8925da9f01ee7860a08ed29243d",
+      "size": 33866005
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.1/Docsy-1.1-universal.apk",
-      "sha256": "c4854b9a90df005f0214a74a77fa9fd8fb29b316a51decb2a7f591b0973d51b0",
-      "size": 85512999
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.2/Docsy-1.2-universal.apk",
+      "sha256": "dae857dd16e8850544ad99a7802dffcc15137e3a6386c78b4d11d1514dfe7d87",
+      "size": 85513000
     }
   },
   "notes": {
-    "ru": "Доки теперь обновляются сами.",
-    "en": "Docsy now updates itself."
+    "ru": "«Поделиться» больше не портит имя файла.",
+    "en": "Share keeps the file's own name."
   }
 }
