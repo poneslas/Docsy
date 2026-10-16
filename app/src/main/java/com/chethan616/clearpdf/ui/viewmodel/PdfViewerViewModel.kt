@@ -198,7 +198,15 @@ data class PdfViewerUiState(
     // rendered by the built-in renderers on a device that supports the optional engine.
     val showOfficeEngineHint: Boolean = false,
     /** True when the optional Office engine (LibreOffice) produced the pages on screen. */
-    val renderedByOfficeEngine: Boolean = false
+    val renderedByOfficeEngine: Boolean = false,
+    /**
+     * Save can write the edits back into the opened file itself: a plain, unencrypted PDF read
+     * straight from [originalUri] (not a converted document or a mirror copy) that this app may
+     * write to. Otherwise Save falls back to saving a new file.
+     */
+    val canReplaceOriginal: Boolean = false,
+    /** Set with a document reopened after Save replaced it, so its "Saved" note survives the reload. */
+    val reloadedAfterSave: Boolean = false
 )
 
 class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel() {
@@ -289,7 +297,7 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         private const val PREFETCH_BEHIND = 1
     }
 
-    fun openPdf(context: Context, uri: Uri, password: String? = null) {
+    fun openPdf(context: Context, uri: Uri, password: String? = null, keepSaveNote: Boolean = false) {
         _uiState.value.document?.let { openPdfUseCase.close(it) }
         recycleBitmaps(_uiState.value.pageBitmaps)
         renderingPages.clear()
@@ -310,15 +318,24 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
             passwordAttemptFailed = false,
             passwordUri = null,
             ocrBlocksByPage = emptyMap(),
-            ocrPagesInProgress = emptySet()
+            ocrPagesInProgress = emptySet(),
+            reloadedAfterSave = keepSaveNote
         )
         viewModelScope.launch {
             try {
+                // Read and write when the picker granted both (so Save can replace the file, also
+                // when it is reopened from Recents later); read only otherwise.
                 try {
                     context.contentResolver.takePersistableUriPermission(
-                        uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                    try {
+                        context.contentResolver.takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (_: Exception) {}
+                }
 
                 // `uri` may be a share-intent grant that is about to be revoked (many senders never
                 // attach a persistable flag, so the line above throws and is swallowed above) — this
@@ -346,6 +363,8 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
                 val (doc, renderedUri) = withContext(Dispatchers.IO) {
                     openDocumentWithFallback(context, sourceUri)
                 }
+                val canReplace = password == null && readableUri == uri && renderedUri == uri &&
+                    withContext(Dispatchers.IO) { canWriteBack(context, uri) }
                 // A revoked share-intent grant fails the DISPLAY_NAME query on `uri` exactly the way
                 // it fails a read — falling straight to `doc.name` would then show the mirror's own
                 // "<hash>.pdf" filename. The name this document was already saved under in Recents
@@ -387,11 +406,12 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
                     linksByPage = emptyMap(),
                     ocrPagesInProgress = emptySet(),
                     isExporting = false,
-                    exportMessage = null,
+                    exportMessage = if (keepSaveNote) _uiState.value.exportMessage else null,
                     exportError = null,
                     lastExportedUri = null,
                     showOfficeEngineHint = com.chethan616.clearpdf.office.OfficeEngine.shouldOfferHint(context, displayName),
-                    renderedByOfficeEngine = renderedUri.path?.contains("/office-pdf/") == true
+                    renderedByOfficeEngine = renderedUri.path?.contains("/office-pdf/") == true,
+                    canReplaceOriginal = canReplace
                 )
                 // Fillable fields and links, read off the main thread in one pass; most PDFs have
                 // no form and stay empty.
@@ -731,6 +751,19 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         _uiState.value = _uiState.value.copy(exportMessage = null, exportError = null)
     }
 
+    /**
+     * Drops the previous document's save feedback when another document is shown, but keeps the
+     * "Saved to …" note of a document that was just reopened because Save replaced it.
+     */
+    fun clearStaleExportFeedback() {
+        val state = _uiState.value
+        when {
+            !state.reloadedAfterSave -> clearExportFeedback()
+            state.document != null -> _uiState.value = state.copy(reloadedAfterSave = false)
+            else -> Unit // still reopening: the note belongs to the document on its way
+        }
+    }
+
     // ── Search ──────────────────────────────────────────────────────────────────
 
     fun searchText(query: String) {
@@ -841,7 +874,9 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         context: Context,
         overlaysByPage: Map<Int, List<ExportOverlay>>,
         fileName: String,
-        overrideUri: Uri? = null
+        overrideUri: Uri? = null,
+        /** An existing file to overwrite (the user confirmed replacing a file of the same name). */
+        replaceUri: Uri? = null
     ) {
         val doc = _uiState.value.document ?: return
         _uiState.value = _uiState.value.copy(
@@ -851,11 +886,12 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         viewModelScope.launch {
             try {
                 val outputUri = withContext(Dispatchers.IO) {
-                    createEditedOutputUri(context, fileName, overrideUri)
+                    replaceUri ?: createEditedOutputUri(context, fileName, overrideUri)
                 }
 
                 withContext(Dispatchers.IO) {
-                    exportWithPdfBox(context, doc, overlaysByPage, outputUri)
+                    if (replaceUri != null) writeViaTempFile(context, doc, overlaysByPage, replaceUri)
+                    else exportWithPdfBox(context, doc, overlaysByPage, outputUri)
                 }
 
                 val outputName = queryFileName(context, outputUri) ?: "Edited.pdf"
@@ -884,6 +920,97 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
             }
         }
     }
+
+    /**
+     * Save into the opened file itself ([PdfViewerUiState.canReplaceOriginal]). The edited PDF is
+     * written to a temporary file first and only then copied over the original, so a failed export
+     * never leaves a half-written document. With [reopen] the document is then read back from the
+     * file, so the edits now inside it aren't drawn (and saved) a second time as markups.
+     */
+    fun replaceOriginal(context: Context, overlaysByPage: Map<Int, List<ExportOverlay>>, reopen: Boolean = true) {
+        val state = _uiState.value
+        val doc = state.document ?: return
+        val target = state.originalUri ?: return
+        _uiState.value = state.copy(
+            isExporting = true, exportMessage = null, exportError = null, lastExportedUri = null
+        )
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { writeViaTempFile(context, doc, overlaysByPage, target) }
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportMessage = context.getString(R.string.viewer_replace_success, state.fileName)
+                )
+                if (reopen) openPdf(context, target, keepSaveNote = true)
+                if (GitHubStarPromptManager.recordSuccess(context)) {
+                    StarPromptEventBus.requestPrompt()
+                }
+            } catch (_: Exception) {
+                GitHubStarPromptManager.recordFailure(context)
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportError = context.getString(R.string.viewer_save_failed)
+                )
+            }
+        }
+    }
+
+    /**
+     * The file a save named [fileName] would land on top of, if any: a file of that name in the
+     * chosen folder ([folderUri], else the Save Location setting), or in the default Downloads one
+     * this app saved there before. Android shows an app only its own files in Downloads, so another
+     * app's file of the same name can't be found; saving then makes a "name (1).pdf" copy as before.
+     */
+    fun findSaveConflict(context: Context, fileName: String, folderUri: Uri?, onResult: (Uri?) -> Unit) {
+        viewModelScope.launch {
+            val existing = withContext(Dispatchers.IO) {
+                runCatching { existingOutputFile(context, fileName, folderUri) }.getOrNull()
+            }
+            onResult(existing)
+        }
+    }
+
+    private fun existingOutputFile(context: Context, fileName: String, folderUri: Uri?): Uri? {
+        val name = if (fileName.endsWith(".pdf", ignoreCase = true)) fileName else "$fileName.pdf"
+        val folder = (folderUri ?: SaveLocationManager.getSaveUri(context))
+            ?.let { androidx.documentfile.provider.DocumentFile.fromTreeUri(context, it) }
+        if (folder != null && folder.canWrite()) return folder.findFile(name)?.takeIf { it.isFile }?.uri
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        context.contentResolver.query(
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.MediaColumns._ID),
+            "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?",
+            arrayOf(name, "${Environment.DIRECTORY_DOWNLOADS}/"),
+            null
+        )?.use { c ->
+            if (c.moveToFirst()) return android.content.ContentUris.withAppendedId(MediaStore.Downloads.EXTERNAL_CONTENT_URI, c.getLong(0))
+        }
+        return null
+    }
+
+    /** Exports to a temporary file, then copies it over [target] — the original is only touched once the export succeeded. */
+    private fun writeViaTempFile(context: Context, doc: PdfDocument, overlaysByPage: Map<Int, List<ExportOverlay>>, target: Uri) {
+        val tmp = File(context.cacheDir, "save-${System.currentTimeMillis()}.pdf")
+        try {
+            exportWithPdfBox(context, doc, overlaysByPage, FileProvider.getUriForFile(context, "${context.packageName}.provider", tmp))
+            context.contentResolver.openOutputStream(target, "wt")?.use { out -> tmp.inputStream().use { it.copyTo(out) } }
+                ?: throw IllegalStateException("Cannot write $target")
+        } finally {
+            tmp.delete()
+        }
+    }
+
+    /**
+     * Whether this app may write [uri] in place (not its own private copy). Probed by opening it
+     * read-write — which neither truncates nor changes the file — rather than by looking for a
+     * granted permission, so a file this app saved to Downloads itself (it owns it; there is no grant
+     * to find) counts too, and a read-only share does not.
+     */
+    private fun canWriteBack(context: Context, uri: Uri): Boolean = runCatching {
+        if (uri.scheme != android.content.ContentResolver.SCHEME_CONTENT) return@runCatching false
+        if (uri.authority == "${context.packageName}.provider") return@runCatching false
+        context.contentResolver.openFileDescriptor(uri, "rw")?.use { true } ?: false
+    }.getOrDefault(false)
 
     /**
      * Writes the open document WITH all edits applied (text edits, drawings, images…) to [out] —

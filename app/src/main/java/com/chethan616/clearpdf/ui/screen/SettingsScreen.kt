@@ -52,6 +52,7 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Vibration
@@ -531,6 +532,18 @@ fun SettingsScreen(
                         desc = stringResource(R.string.settings_invert_share_morph_desc),
                         checked = invertShareMorph,
                         onCheckedChange = { invertShareMorph = it; AppSettingsManager.setInvertShareMorph(context, it) },
+                        backdrop = backdrop
+                    )
+                    SettingsDivider(isLight)
+                    // The viewer's Save asks "Replace …?" before writing into the opened file; "Don't
+                    // ask again" in that card turns this off, and this is the way back.
+                    var confirmReplace by remember { mutableStateOf(AppSettingsManager.getConfirmReplace(context)) }
+                    SettingsToggleRow(
+                        icon = Icons.Rounded.Save,
+                        title = stringResource(R.string.settings_confirm_replace),
+                        desc = stringResource(R.string.settings_confirm_replace_desc),
+                        checked = confirmReplace,
+                        onCheckedChange = { confirmReplace = it; AppSettingsManager.setConfirmReplace(context, it) },
                         backdrop = backdrop
                     )
                     SettingsDivider(isLight)

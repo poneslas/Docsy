@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Save into the opened file / replace a same-named file (viewer Save). -->
+<resources>
+    <string name="replace_title">Заменить «%1$s»?</string>
+    <string name="replace_original_body">Старая версия пропадёт. «Копия» сохранит отдельный файл.</string>
+    <string name="replace_existing_body">Такой файл уже есть. «Копия» сохранит рядом новый.</string>
+    <string name="replace_confirm">Заменить</string>
+    <string name="replace_save_copy">Копия</string>
+    <string name="replace_dont_ask">Больше не спрашивать</string>
+    <string name="viewer_replace_success">Сохранено в %1$s</string>
+    <string name="settings_confirm_replace">Спрашивать перед заменой</string>
+    <string name="settings_confirm_replace_desc">Перед записью в открытый файл</string>
+</resources>

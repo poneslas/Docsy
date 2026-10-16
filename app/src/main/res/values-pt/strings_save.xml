@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Save into the opened file / replace a same-named file (viewer Save). -->
+<resources>
+    <string name="replace_title">Substituir «%1$s»?</string>
+    <string name="replace_original_body">As suas alterações serão guardadas neste ficheiro, substituindo a versão atual. «Cópia» mantém-no e guarda um novo ficheiro.</string>
+    <string name="replace_existing_body">Já existe um ficheiro com este nome nesta pasta. «Substituir» sobrescreve-o; «Cópia» guarda um novo ao lado.</string>
+    <string name="replace_confirm">Substituir</string>
+    <string name="replace_save_copy">Cópia</string>
+    <string name="replace_dont_ask">Não perguntar novamente</string>
+    <string name="viewer_replace_success">Guardado em %1$s</string>
+    <string name="settings_confirm_replace">Perguntar antes de substituir</string>
+    <string name="settings_confirm_replace_desc">Guardar pede confirmação antes de escrever as alterações no ficheiro aberto</string>
+</resources>

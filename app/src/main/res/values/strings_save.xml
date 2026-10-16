@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Save into the opened file / replace a same-named file (viewer Save). -->
+<resources>
+    <string name="replace_title">Replace “%1$s”?</string>
+    <string name="replace_original_body">Your edits will be saved into this file, replacing its current version. Copy keeps it and saves a new file.</string>
+    <string name="replace_existing_body">A file with this name is already in this folder. Replace overwrites it; Copy saves a new file next to it.</string>
+    <string name="replace_confirm">Replace</string>
+    <string name="replace_save_copy">Copy</string>
+    <string name="replace_dont_ask">Don\'t ask again</string>
+    <string name="viewer_replace_success">Saved to %1$s</string>
+    <string name="settings_confirm_replace">Ask before replacing</string>
+    <string name="settings_confirm_replace_desc">Save confirms before writing your edits into the opened file</string>
+</resources>

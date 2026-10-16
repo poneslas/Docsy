@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Save into the opened file / replace a same-named file (viewer Save). -->
+<resources>
+    <string name="replace_title">استبدال «%1$s»؟</string>
+    <string name="replace_original_body">ستُحفَظ تعديلاتك في هذا الملف بدلًا من نسخته الحالية. «نسخة» تُبقيه وتحفظ ملفًا جديدًا.</string>
+    <string name="replace_existing_body">يوجد ملف بهذا الاسم في هذا المجلد بالفعل. «استبدال» يكتب فوقه، و«نسخة» تحفظ ملفًا جديدًا بجانبه.</string>
+    <string name="replace_confirm">استبدال</string>
+    <string name="replace_save_copy">نسخة</string>
+    <string name="replace_dont_ask">عدم السؤال مرة أخرى</string>
+    <string name="viewer_replace_success">تم الحفظ في %1$s</string>
+    <string name="settings_confirm_replace">السؤال قبل الاستبدال</string>
+    <string name="settings_confirm_replace_desc">يطلب الحفظ التأكيد قبل كتابة تعديلاتك في الملف المفتوح</string>
+</resources>

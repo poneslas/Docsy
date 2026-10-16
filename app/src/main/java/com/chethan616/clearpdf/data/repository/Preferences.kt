@@ -186,6 +186,9 @@ object AppSettingsManager {
      */
     fun getInvertShareMorph(context: Context): Boolean = prefs(context).getBoolean("invert_share_morph", false)
     fun setInvertShareMorph(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("invert_share_morph", enabled).apply()
+    /** Save asks "Replace …?" before writing edits into the opened file (off after "Don't ask again"). */
+    fun getConfirmReplace(context: Context): Boolean = prefs(context).getBoolean("confirm_replace", true)
+    fun setConfirmReplace(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("confirm_replace", enabled).apply()
     fun setAutoDarkPages(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean(KEY_AUTO_DARK_PAGES, enabled).apply()
 
     /** The viewer trims the empty border around pages, so the text fills the screen (#85). */

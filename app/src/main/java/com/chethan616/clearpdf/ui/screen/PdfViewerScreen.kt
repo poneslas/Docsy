@@ -141,6 +141,7 @@ import com.chethan616.clearpdf.data.repository.OnboardingManager
 import com.chethan616.clearpdf.data.repository.RecentFilesManager
 import com.chethan616.clearpdf.data.repository.PdfPageBookmarksManager
 import com.chethan616.clearpdf.ui.components.rememberAdaptiveInk
+import com.chethan616.clearpdf.ui.components.ReplaceFileDialog
 import com.chethan616.clearpdf.ui.components.UnsavedChangesDialog
 import com.chethan616.clearpdf.ui.components.GlassBottomSheet
 import com.chethan616.clearpdf.ui.components.DecryptingAnimation
@@ -366,6 +367,10 @@ fun PdfViewerScreen(
     var pendingSaveMarkups  by remember { mutableStateOf<Map<Int, List<PdfMarkup>>?>(null) }
     var exitAfterSave       by remember { mutableStateOf(false) }
     var showUnsavedDialog   by remember { mutableStateOf(false) }
+    // Save writing over a file: the opened document itself, or a same-named file in the target folder.
+    var showReplaceDialog   by remember { mutableStateOf(false) }
+    var saveConflict        by remember { mutableStateOf<SaveConflict?>(null) }
+    var showConflictDialog  by remember { mutableStateOf(false) }
     val hasUnsavedEdits     by remember { derivedStateOf { markupSnapshot() != savedMarkups } }
 
     // Undo history: the page each added markup landed on, newest last. Undo pops the most recent
@@ -628,7 +633,7 @@ fun PdfViewerScreen(
         selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet()
         annotationsByPage.clear(); undoStack.clear(); pageCanvasSizes.clear(); pageBitmapSizes.clear()
         savedMarkups = emptyMap(); pendingSaveMarkups = null; exitAfterSave = false; showUnsavedDialog = false
-        textSelection.resetDocument(); viewModel.clearExportFeedback()
+        textSelection.resetDocument(); viewModel.clearStaleExportFeedback()
         showFindBar = false; findQuery = ""; viewModel.clearSearch()
     }
 
@@ -654,6 +659,45 @@ fun PdfViewerScreen(
     fun requestExit() {
         if (state.document != null && hasUnsavedEdits) { controlsVisible = true; showUnsavedDialog = true }
         else onBack()
+    }
+
+    fun saveIntoOriginal() {
+        val snapshot = markupSnapshot()
+        val overlays = buildExportOverlays(annotationsByPage, state.ocrBlocksByPage, pageCanvasSizes, pageBitmapSizes)
+        if (overlays.isEmpty()) {
+            // Nothing exportable (e.g. only empty text boxes) — nothing to lose either.
+            savedMarkups = snapshot
+            if (exitAfterSave) { exitAfterSave = false; onBack() }
+            return
+        }
+        pendingSaveMarkups = snapshot
+        // Leaving right after? Then there is no need to read the saved file back in.
+        viewModel.replaceOriginal(context, overlays, reopen = !exitAfterSave)
+    }
+
+    /**
+     * Save: into the opened file itself when the app may write it (asking "Replace …?" unless the
+     * user said not to), otherwise through the Save sheet as a new file.
+     */
+    fun requestSave() {
+        when {
+            !state.canReplaceOriginal -> showSaveDialog = true
+            AppSettingsManager.getConfirmReplace(context) -> showReplaceDialog = true
+            else -> saveIntoOriginal()
+        }
+    }
+
+    /** Save as a new file (Save sheet), or over [replaceUri] once the user confirmed replacing it. */
+    fun saveCopy(fileName: String, folderUri: android.net.Uri?, replaceUri: android.net.Uri? = null) {
+        val snapshot = markupSnapshot()
+        val overlays = buildExportOverlays(annotationsByPage, state.ocrBlocksByPage, pageCanvasSizes, pageBitmapSizes)
+        if (overlays.isNotEmpty()) {
+            pendingSaveMarkups = snapshot
+            viewModel.exportEditedPdf(context, overlays, fileName, folderUri, replaceUri)
+        } else {
+            savedMarkups = snapshot
+            if (exitAfterSave) { exitAfterSave = false; onBack() }
+        }
     }
 
     // An export started from the unsaved-changes card (or any Save) settles here: success marks the
@@ -1884,7 +1928,7 @@ fun PdfViewerScreen(
                     },
                     onResetZoom        = { scope.launch { animateZoomPan(1f, Offset.Zero) }
                                           lastInteractionAtMs = System.currentTimeMillis() },
-                    onShowSaveDialog   = { showSaveDialog = true },
+                    onShowSaveDialog   = { requestSave() },
                     onImageDone        = { activeImageId = null; activeTool = PdfEditTool.None },
                     onReplaceImage     = {
                         if (activeItem?.isSignature == true) showSignaturePad = true
@@ -2364,7 +2408,9 @@ fun PdfViewerScreen(
         // ── Save Document — REAL in-window glass (samples the live page) ──
         LiquidSaveSheet(
             visible         = showSaveDialog,
-            initialFileName = state.document?.name?.substringBeforeLast('.')?.let { "${it}_Edited" } ?: "Document",
+            // The document's own name: saving under it again asks "Replace …?" instead of
+            // quietly piling up "_Edited" suffixes.
+            initialFileName = state.fileName.substringBeforeLast('.').ifBlank { state.document?.name?.substringBeforeLast('.') ?: "Document" },
             backdrop        = contentBackdrop,
             uiSensor        = uiSensor,
             fg              = panelFg,
@@ -2374,27 +2420,55 @@ fun PdfViewerScreen(
             onDismiss       = { showSaveDialog = false; exitAfterSave = false },
             onSave          = { fileName, overrideUri ->
                 showSaveDialog = false
-                val snapshot = markupSnapshot()
-                val overlays = buildExportOverlays(annotationsByPage, state.ocrBlocksByPage, pageCanvasSizes, pageBitmapSizes)
-                if (overlays.isNotEmpty()) {
-                    pendingSaveMarkups = snapshot
-                    viewModel.exportEditedPdf(context, overlays, fileName, overrideUri)
-                } else {
-                    // Nothing exportable (e.g. only empty text boxes) — nothing to lose either.
-                    savedMarkups = snapshot
-                    if (exitAfterSave) { exitAfterSave = false; onBack() }
+                viewModel.findSaveConflict(context, fileName, overrideUri) { existing ->
+                    when {
+                        existing == null -> saveCopy(fileName, overrideUri)
+                        state.canReplaceOriginal && existing.toString() == state.originalUri?.toString() -> saveIntoOriginal()
+                        else -> { saveConflict = SaveConflict(fileName, overrideUri, existing); showConflictDialog = true }
+                    }
                 }
             }
         )
 
+        // ── Replace the opened document (Save) ──
+        ReplaceFileDialog(
+            visible      = showReplaceDialog,
+            fileName     = state.fileName,
+            body         = stringResource(R.string.replace_original_body),
+            otherLabel   = stringResource(R.string.replace_save_copy),
+            offerDontAsk = true,
+            onReplace    = { dontAsk ->
+                showReplaceDialog = false
+                if (dontAsk) AppSettingsManager.setConfirmReplace(context, false)
+                saveIntoOriginal()
+            },
+            onOther      = { showReplaceDialog = false; showSaveDialog = true },
+            onCancel     = { showReplaceDialog = false; exitAfterSave = false },
+            backdrop     = contentBackdrop
+        )
+
+        // ── A copy would land on a same-named file in the target folder ──
+        // The conflict stays set while the card fades out, so its title doesn't blank mid-exit.
+        val conflict = saveConflict
+        ReplaceFileDialog(
+            visible    = showConflictDialog && conflict != null,
+            fileName   = conflict?.fileName?.let { if (it.endsWith(".pdf", true)) it else "$it.pdf" } ?: "",
+            body       = stringResource(R.string.replace_existing_body),
+            otherLabel = stringResource(R.string.replace_save_copy),
+            onReplace  = { _ -> showConflictDialog = false; conflict?.let { saveCopy(it.fileName, it.folderUri, it.existing) } },
+            onOther    = { showConflictDialog = false; conflict?.let { saveCopy(it.fileName, it.folderUri) } },
+            onCancel   = { showConflictDialog = false; exitAfterSave = false },
+            backdrop   = contentBackdrop
+        )
+
         // ── Unsaved changes — same card as the spreadsheet, refracting the live page ──
-        // Save routes through the normal Save sheet (file name / location), then leaves once the
-        // export succeeds (see the exportMessage effect above).
+        // Save routes like the Save button (replace the file, or the Save sheet for a new one), then
+        // leaves once the export succeeds (see the exportMessage effect above).
         UnsavedChangesDialog(
             visible   = showUnsavedDialog,
             onDiscard = { showUnsavedDialog = false; onBack() },
             onCancel  = { showUnsavedDialog = false },
-            onSave    = { showUnsavedDialog = false; exitAfterSave = true; showSaveDialog = true },
+            onSave    = { showUnsavedDialog = false; exitAfterSave = true; requestSave() },
             backdrop  = contentBackdrop
         )
 
@@ -2778,3 +2852,6 @@ internal fun OcrTextRange.snappedToWords(text: String): OcrTextRange {
 private fun OptionalSlot(slot: Modifier?, content: @Composable () -> Unit) {
     if (slot != null) Box(slot, contentAlignment = Alignment.Center) { content() } else content()
 }
+
+/** A Save-sheet save whose name is already taken in the target folder, waiting for "Replace?". */
+private class SaveConflict(val fileName: String, val folderUri: android.net.Uri?, val existing: android.net.Uri)
