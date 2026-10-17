@@ -9,7 +9,7 @@
         android:shortcutLongLabel="@string/shortcut_open_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.chethan616.clearpdf"
+            android:targetPackage="ru.poneslas.docsy"
             android:targetClass="com.chethan616.clearpdf.MainActivity"
             android:data="clearpdf://open" />
         <categories android:name="android.shortcut.conversation" />
@@ -23,7 +23,7 @@
         android:shortcutLongLabel="@string/shortcut_merge_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.chethan616.clearpdf"
+            android:targetPackage="ru.poneslas.docsy"
             android:targetClass="com.chethan616.clearpdf.MainActivity"
             android:data="clearpdf://merge" />
         <categories android:name="android.shortcut.conversation" />
@@ -37,7 +37,7 @@
         android:shortcutLongLabel="@string/shortcut_compress_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.chethan616.clearpdf"
+            android:targetPackage="ru.poneslas.docsy"
             android:targetClass="com.chethan616.clearpdf.MainActivity"
             android:data="clearpdf://compress" />
         <categories android:name="android.shortcut.conversation" />
@@ -51,7 +51,7 @@
         android:shortcutLongLabel="@string/shortcut_create_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.chethan616.clearpdf"
+            android:targetPackage="ru.poneslas.docsy"
             android:targetClass="com.chethan616.clearpdf.MainActivity"
             android:data="clearpdf://create" />
         <categories android:name="android.shortcut.conversation" />

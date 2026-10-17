@@ -41,9 +41,9 @@ android {
     buildToolsVersion = "36.1.0"
 
     defaultConfig {
-        applicationId = "com.chethan616.clearpdf"
-        // Доки: ставится рядом с ClearPDF, а не поверх него.
-        applicationIdSuffix = ".docsy"
+        // Доки: свой айди, ставится рядом с ClearPDF, а не поверх него.
+        // namespace (пакет классов) остаётся от ClearPDF.
+        applicationId = "ru.poneslas.docsy"
         minSdk = 23
         targetSdk = 36
         // Keep this a literal: F-Droid's update checker reads it from this file.
