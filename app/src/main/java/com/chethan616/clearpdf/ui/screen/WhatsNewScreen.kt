@@ -176,7 +176,10 @@ fun WhatsNewScreen(
                     .padding(vertical = 18.dp, horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                WhatsNewItems.forEachIndexed { i, item -> WhatsNewRow(item, i, ink, inkSoft) }
+                // Доки: свои новинки вместо списка ClearPDF.
+                com.chethan616.clearpdf.update.DocsyWhatsNew.items
+                    .map { WhatsNewItem(it.icon, it.accent, it.title, it.desc) }
+                    .forEachIndexed { i, item -> WhatsNewRow(item, i, ink, inkSoft) }
             }
         }
 

@@ -66,7 +66,9 @@ object OnboardingManager {
         val current = currentVersionCode(context)
         if (current <= 0) return false
         val seen = prefs(context).getInt(KEY_WHATS_NEW_VERSION, onboardedVersionCode(context))
-        return seen < current
+        // Доки: только на минорных и мажорных выпусках (номер = мажор × 10000 + минор × 100 + патч,
+        // патч молчит) и только когда есть что показать (update/DocsyWhatsNew.kt).
+        return seen / 100 < current / 100 && com.chethan616.clearpdf.update.DocsyWhatsNew.items.isNotEmpty()
     }
 
     fun markWhatsNewSeen(context: Context) =
