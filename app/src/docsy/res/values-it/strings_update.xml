@@ -8,11 +8,13 @@
     <string name="update_allow_button">Continua l’installazione</string>
     <string name="update_bad_file">Il file è arrivato con un errore. Riprova.</string>
     <string name="update_no_network">Download non riuscito. Controlla la connessione e riprova.</string>
-    <string name="update_setting">Cerca aggiornamenti</string>
-    <string name="update_setting_desc">Una volta al giorno, guarda su GitHub se c’è una nuova versione</string>
+    <string name="update_setting">Controlla automaticamente</string>
+    <string name="update_setting_desc">Una volta al giorno, all\'apertura di Docsy</string>
     <string name="update_checking">Cerco aggiornamenti…</string>
     <string name="update_latest">Hai l’ultima versione</string>
     <string name="update_check_failed">Impossibile controllare. Niente internet?</string>
     <string name="update_check_again">Riprova</string>
     <string name="update_pill">Docsy %1$s · Dettagli</string>
+    <string name="update_check_now">Cerca aggiornamenti</string>
+    <string name="update_check_tap">Tocca per controllare</string>
 </resources>

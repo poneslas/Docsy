@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,11 +36,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.chethan616.clearpdf.R
+import com.chethan616.clearpdf.ui.components.AccentIconTile
 import com.chethan616.clearpdf.ui.components.GlassProgressBar
 import com.chethan616.clearpdf.ui.components.LiquidButton
 import com.chethan616.clearpdf.ui.components.liquidGlassPanel
@@ -144,66 +148,85 @@ fun UpdateRow(backdrop: Backdrop, uiSensor: UISensor, modifier: Modifier = Modif
 }
 
 /**
- * About: always looks for a new version on opening, then says where things stand — checking, up to
- * date, couldn't check, or the new version with what's new, the download and the install.
+ * About → «Updates» panel, first row: "Check for updates" in the Settings-index row language (icon
+ * tile, title, the current standing as the subtitle, chevron). Tapping checks again; while the
+ * check runs the chevron gives way to a spinner. About checks on its own when it opens.
  */
 @Composable
-fun UpdateAboutSection(backdrop: Backdrop, modifier: Modifier = Modifier) {
+fun UpdateCheckRow(ink: Color, sub: Color, modifier: Modifier = Modifier) {
     if (!Updates.supported) return
     val context = LocalContext.current
     LaunchedEffect(Unit) { Updates.checkNow(context) }
     val state by Updates.state.collectAsState()
-    val isDark = LocalIsDarkMode.current
-    val ink = LiquidGlassColors.text(isDark)
-    val sub = LiquidGlassColors.secondary(isDark)
-    val centered = TextStyle(sub, 13.sp, textAlign = TextAlign.Center)
+    val checking = state == UpdateState.Checking
+    val status = when (val s = state) {
+        UpdateState.Unknown -> stringResource(R.string.update_check_tap)
+        UpdateState.Checking -> stringResource(R.string.update_checking)
+        UpdateState.UpToDate -> stringResource(R.string.update_latest)
+        UpdateState.CheckFailed -> stringResource(R.string.update_check_failed)
+        else -> stringResource(R.string.update_title, s.newVersion?.version.orEmpty())
+    }
+    Row(
+        modifier
+            .fillMaxWidth()
+            .liquidRowClick(enabled = !checking, corner = 18.dp) { Updates.checkNow(context) }
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        AccentIconTile(Icons.Rounded.SystemUpdate, LiquidGlassColors.Blue, size = 34, iconSize = 18)
+        Column(Modifier.weight(1f)) {
+            BasicText(stringResource(R.string.update_check_now), style = TextStyle(ink, 16.sp, FontWeight.Medium), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            BasicText(status, style = TextStyle(sub, 13.sp))
+        }
+        if (checking) {
+            CircularProgressIndicator(Modifier.size(18.dp), LiquidGlassColors.Blue, strokeWidth = 2.dp)
+        } else {
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, Modifier.size(20.dp), sub.copy(alpha = 0.7f))
+        }
+    }
+}
 
+/**
+ * Under the row, only when a version is out: what's new, the download progress, the install
+ * permission note, and the one button that moves things along.
+ */
+@Composable
+fun UpdateActionBlock(backdrop: Backdrop, sub: Color, modifier: Modifier = Modifier) {
+    if (!Updates.supported) return
+    val context = LocalContext.current
+    val state by Updates.state.collectAsState()
+    val s = state
+    val info = s.newVersion ?: return
+    val centered = TextStyle(sub, 13.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
+    val language = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language.orEmpty()
     Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        when (val s = state) {
-            UpdateState.Unknown -> Unit
-            UpdateState.Checking -> BasicText(stringResource(R.string.update_checking), style = centered)
-            UpdateState.UpToDate -> BasicText(stringResource(R.string.update_latest), style = centered)
-            UpdateState.CheckFailed -> {
-                BasicText(stringResource(R.string.update_check_failed), style = centered)
-                LiquidButton(onClick = { Updates.checkNow(context) }, backdrop = backdrop, surfaceColor = ink.copy(0.08f)) {
-                    BasicText(stringResource(R.string.update_check_again), style = TextStyle(ink, 14.sp, FontWeight.Medium))
-                }
+        info.notes(language).takeIf { it.isNotEmpty() }?.let { BasicText(it, style = centered) }
+        when (s) {
+            is UpdateState.Downloading -> {
+                GlassProgressBar(progress = s.percent / 100f, modifier = Modifier.fillMaxWidth(), backdrop = backdrop)
+                BasicText(stringResource(R.string.update_downloading, s.percent), style = centered)
             }
             else -> {
-                val info = s.newVersion ?: return@Column
-                val language = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language.orEmpty()
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.SystemUpdate, null, Modifier.size(18.dp), LiquidGlassColors.Blue)
-                    BasicText(stringResource(R.string.update_title, info.version), style = TextStyle(ink, 16.sp, FontWeight.SemiBold))
+                if (s is UpdateState.ReadyToInstall && s.needsPermission) {
+                    BasicText(stringResource(R.string.update_allow_install), style = centered)
                 }
-                info.notes(language).takeIf { it.isNotEmpty() }?.let { BasicText(it, style = centered.copy(lineHeight = 18.sp)) }
-                when (s) {
-                    is UpdateState.Downloading -> {
-                        GlassProgressBar(progress = s.percent / 100f, modifier = Modifier.fillMaxWidth(), backdrop = backdrop)
-                        BasicText(stringResource(R.string.update_downloading, s.percent), style = centered)
-                    }
-                    else -> {
-                        if (s is UpdateState.ReadyToInstall && s.needsPermission) {
-                            BasicText(stringResource(R.string.update_allow_install), style = centered.copy(lineHeight = 18.sp))
-                        }
-                        if (s is UpdateState.DownloadFailed) {
-                            BasicText(
-                                stringResource(if (s.badFile) R.string.update_bad_file else R.string.update_no_network),
-                                style = centered.copy(color = LiquidGlassColors.Red)
-                            )
-                        }
-                        LiquidButton(
-                            onClick = { Updates.startUpdate(context) },
-                            backdrop = backdrop,
-                            tint = LiquidGlassColors.Blue,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            BasicText(
-                                stringResource(if (s is UpdateState.ReadyToInstall) R.string.update_allow_button else R.string.update_button),
-                                style = TextStyle(Color.White, 15.sp, FontWeight.SemiBold)
-                            )
-                        }
-                    }
+                if (s is UpdateState.DownloadFailed) {
+                    BasicText(
+                        stringResource(if (s.badFile) R.string.update_bad_file else R.string.update_no_network),
+                        style = centered.copy(color = LiquidGlassColors.Red)
+                    )
+                }
+                LiquidButton(
+                    onClick = { Updates.startUpdate(context) },
+                    backdrop = backdrop,
+                    tint = LiquidGlassColors.Blue,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BasicText(
+                        stringResource(if (s is UpdateState.ReadyToInstall) R.string.update_allow_button else R.string.update_button),
+                        style = TextStyle(Color.White, 15.sp, FontWeight.SemiBold)
+                    )
                 }
             }
         }

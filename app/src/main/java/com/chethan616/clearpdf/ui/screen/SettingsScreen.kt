@@ -52,7 +52,7 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Tune
@@ -617,8 +617,6 @@ fun SettingsScreen(
                             .liquidRowClick { openExternalLink(context, UpstreamRepoUrl) }
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
-                    // Доки: всё про обновление — здесь. При входе всегда проверяем.
-                    com.chethan616.clearpdf.update.UpdateAboutSection(backdrop, Modifier.padding(vertical = 4.dp))
                     Spacer(Modifier.height(4.dp))
                     ToolPrimaryButton(
                         text = stringResource(R.string.settings_star_github),
@@ -629,12 +627,18 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     BasicText(stringResource(R.string.settings_open_source), style = TextStyle(sub.copy(0.7f), 11.sp, textAlign = TextAlign.Center))
-                    // Доки: раз в сутки смотреть, не вышла ли новая версия (только сборка с GitHub).
-                    if (com.chethan616.clearpdf.update.Updates.supported) {
-                        SettingsDivider(isLight)
-                        var autoUpdate by remember { mutableStateOf(com.chethan616.clearpdf.update.Updates.autoCheck(context)) }
+                }
+                // Доки: обновления — своя панель в языке списка настроек: строка «Проверить
+                // обновления» с текущим состоянием, под ней кнопка «Обновить», когда версия вышла,
+                // и переключатель ежедневной проверки (только сборка с GitHub).
+                if (p == PageAbout && com.chethan616.clearpdf.update.Updates.supported) SettingsSection(backdrop, uiSensor, Modifier, padding = 8.dp, gap = 0.dp) {
+                    com.chethan616.clearpdf.update.UpdateCheckRow(ink, sub)
+                    com.chethan616.clearpdf.update.UpdateActionBlock(backdrop, sub, Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp))
+                    SettingsDivider(isLight)
+                    var autoUpdate by remember { mutableStateOf(com.chethan616.clearpdf.update.Updates.autoCheck(context)) }
+                    Box(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
                         SettingsToggleRow(
-                            icon = Icons.Rounded.SystemUpdate,
+                            icon = Icons.Rounded.Schedule,
                             title = stringResource(R.string.update_setting),
                             desc = stringResource(R.string.update_setting_desc),
                             checked = autoUpdate,

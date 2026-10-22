@@ -8,11 +8,13 @@
     <string name="update_allow_button">Продолжить установку</string>
     <string name="update_bad_file">Файл скачался с ошибкой. Попробуйте ещё раз.</string>
     <string name="update_no_network">Не скачалось. Проверьте интернет и попробуйте ещё раз.</string>
-    <string name="update_setting">Проверять обновления</string>
-    <string name="update_setting_desc">Раз в сутки смотреть на GitHub, не вышла ли новая версия</string>
+    <string name="update_setting">Проверять сами</string>
+    <string name="update_setting_desc">Раз в сутки, когда открываете Доки</string>
     <string name="update_checking">Проверяю обновления…</string>
     <string name="update_latest">У вас последняя версия</string>
     <string name="update_check_failed">Не удалось проверить. Нет интернета?</string>
     <string name="update_check_again">Проверить ещё раз</string>
     <string name="update_pill">Доки %1$s · Подробнее</string>
+    <string name="update_check_now">Проверить обновления</string>
+    <string name="update_check_tap">Нажмите, чтобы проверить</string>
 </resources>
