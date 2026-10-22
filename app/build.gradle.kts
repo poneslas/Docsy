@@ -243,8 +243,8 @@ dependencies {
 // Доки: своя версия, независимо от версии ClearPDF внутри.
 // versionCode = мажор × 10000 + минор × 100 + патч, только растёт.
 android.defaultConfig {
-    versionCode = 10400
-    versionName = "1.4"
+    versionCode = 10500
+    versionName = "1.5"
 }
 
 // Доки обновляются сами только в сборке с GitHub (foss). Google Play и F-Droid обновляют приложения сами.
