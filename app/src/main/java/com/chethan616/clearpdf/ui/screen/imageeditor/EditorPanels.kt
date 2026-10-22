@@ -3,6 +3,14 @@ package com.chethan616.clearpdf.ui.screen.imageeditor
 import com.chethan616.clearpdf.ui.components.rememberJellyPress
 import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -79,6 +87,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -193,56 +203,103 @@ internal fun ColorSwatch(color: Int, onClick: () -> Unit, modifier: Modifier = M
     )
 }
 
+/** Screen-reader name for an icon-only [GlassToolButton]. */
+@Composable
+internal fun iconDescription(@androidx.annotation.StringRes res: Int): Modifier {
+    val text = stringResource(res)
+    return Modifier.semantics { contentDescription = text }
+}
+
+/**
+ * Chevron that switches a tool panel between its short row (what the usual edit needs) and the
+ * full set of controls. Tinted while the panel is expanded so the state is visible at a glance.
+ */
+@Composable
+internal fun PanelToggle(expanded: Boolean, onToggle: () -> Unit) {
+    val label = stringResource(if (expanded) R.string.ie_panel_collapse else R.string.ie_panel_expand)
+    GlassToolButton(
+        if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+        null,
+        expanded,
+        onToggle,
+        Modifier.semantics { contentDescription = label }
+    )
+}
+
+/** The rows a panel shows only when expanded, sliding in under its first row. */
+@Composable
+internal fun PanelDetails(expanded: Boolean, content: @Composable ColumnScope.() -> Unit) {
+    AnimatedVisibility(
+        visible = expanded,
+        enter = expandVertically(GlassMotion.settle()) + fadeIn(),
+        exit = shrinkVertically(GlassMotion.settle()) + fadeOut()
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
+    }
+}
+
 // ── Crop ───────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Short row: rotate, expand, Apply — enough to cut a screenshot. Expanded adds flips,
+ * perspective, straighten, aspect presets and mask shapes.
+ */
 @Composable
 fun CropPanel(
     session: ImageEditorViewModel.CropSession?,
     backdrop: Backdrop,
-    vm: ImageEditorViewModel
+    vm: ImageEditorViewModel,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
     if (session == null) {
-        Box(Modifier.fillMaxWidth().height(96.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = LiquidGlassColors.Blue, strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
         }
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            GlassToolButton(Icons.Rounded.RotateLeft, null, false, { vm.rotateCrop(-1) })
-            GlassToolButton(Icons.Rounded.RotateRight, null, false, { vm.rotateCrop(1) })
-            GlassToolButton(Icons.Rounded.Flip, null, session.transform.flipH, { vm.flipCrop(true) })
-            GlassToolButton(Icons.Rounded.Flip, null, session.transform.flipV, { vm.flipCrop(false) }, Modifier.rotate(90f))
-            GlassToolButton(Icons.Rounded.Transform, stringResource(R.string.ie_perspective), session.perspective, { vm.setPerspective(!session.perspective) })
+            GlassToolButton(Icons.Rounded.RotateLeft, null, false, { vm.rotateCrop(-1) }, iconDescription(R.string.ie_rotate_left))
+            GlassToolButton(Icons.Rounded.RotateRight, null, false, { vm.rotateCrop(1) }, iconDescription(R.string.ie_rotate_right))
             Spacer(Modifier.weight(1f))
-            GlassToolButton(Icons.Rounded.Restore, null, false, { vm.resetCrop() })
+            PanelToggle(expanded, onToggle)
+            LiquidButton(onClick = { vm.triggerCrop() }, backdrop = backdrop, tint = LiquidGlassColors.Blue) {
+                BasicText(stringResource(R.string.ie_apply), style = TextStyle(Color.White, 15.sp, FontWeight.SemiBold), maxLines = 1, modifier = Modifier.padding(vertical = 4.dp))
+            }
         }
-        if (!session.perspective) {
-            SliderRow(
-                stringResource(R.string.ie_straighten), session.transform.straighten, -45f..45f, backdrop,
-                onChange = { vm.straighten(it) },
-                valueText = { "%.1f°".format(it) },
-                onReset = { vm.straighten(0f) }
-            )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(CropAspects.size) { i ->
-                    val a = CropAspects[i]
-                    val label = when (a.ratio) {
-                        null -> stringResource(R.string.ie_free)
-                        -1f -> stringResource(R.string.ie_original)
-                        else -> a.label
+        PanelDetails(expanded) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                GlassToolButton(Icons.Rounded.Flip, null, session.transform.flipH, { vm.flipCrop(true) }, iconDescription(R.string.ie_flip_h))
+                GlassToolButton(Icons.Rounded.Flip, null, session.transform.flipV, { vm.flipCrop(false) }, iconDescription(R.string.ie_flip_v).rotate(90f))
+                GlassToolButton(Icons.Rounded.Transform, stringResource(R.string.ie_perspective), session.perspective, { vm.setPerspective(!session.perspective) })
+                Spacer(Modifier.weight(1f))
+                GlassToolButton(Icons.Rounded.Restore, null, false, { vm.resetCrop() }, iconDescription(R.string.ie_reset))
+            }
+            if (!session.perspective) {
+                SliderRow(
+                    stringResource(R.string.ie_straighten), session.transform.straighten, -45f..45f, backdrop,
+                    onChange = { vm.straighten(it) },
+                    valueText = { "%.1f°".format(it) },
+                    onReset = { vm.straighten(0f) }
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(CropAspects.size) { i ->
+                        val a = CropAspects[i]
+                        val label = when (a.ratio) {
+                            null -> stringResource(R.string.ie_free)
+                            -1f -> stringResource(R.string.ie_original)
+                            else -> a.label
+                        }
+                        EditorChip(label, session.aspectIndex == i, { vm.setAspect(i) })
                     }
-                    EditorChip(label, session.aspectIndex == i, { vm.setAspect(i) })
+                }
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(CropMasks.size) { i ->
+                        EditorChip(stringResource(CropMasks[i].labelRes), session.outlineIndex == i, { vm.setOutline(i) }, accent = LiquidGlassColors.Purple)
+                    }
                 }
             }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(CropMasks.size) { i ->
-                    EditorChip(stringResource(CropMasks[i].labelRes), session.outlineIndex == i, { vm.setOutline(i) }, accent = LiquidGlassColors.Purple)
-                }
-            }
-        }
-        LiquidButton(onClick = { vm.triggerCrop() }, backdrop = backdrop, tint = LiquidGlassColors.Blue, modifier = Modifier.fillMaxWidth()) {
-            BasicText(stringResource(R.string.ie_apply), style = TextStyle(Color.White, 15.sp, FontWeight.SemiBold), modifier = Modifier.padding(vertical = 4.dp))
         }
     }
 }
@@ -410,25 +467,56 @@ private val ShapeIcons: List<Pair<ShapeKind, ImageVector>> = listOf(
     ShapeKind.Spray to Icons.Rounded.Grain,
 )
 
+/** One-tap presets for the short Draw row: brush + shape pairs people actually reach for. */
+private class QuickTool(val labelRes: Int, val icon: ImageVector, val brush: BrushKind, val shape: ShapeKind) {
+    fun matches(b: BrushSettings) = b.brush == brush && (brush == BrushKind.Eraser || b.shape == shape)
+}
+
+private val QuickTools = listOf(
+    QuickTool(R.string.ie_brush_pen, Icons.Rounded.Edit, BrushKind.Pen, ShapeKind.Free),
+    QuickTool(R.string.ie_quick_arrow, Icons.Rounded.ArrowRightAlt, BrushKind.Pen, ShapeKind.LineArrow),
+    QuickTool(R.string.ie_quick_frame, Icons.Rounded.CropSquare, BrushKind.Pen, ShapeKind.OutlinedRect),
+    QuickTool(R.string.ie_brush_highlighter, Icons.Rounded.BorderColor, BrushKind.Highlighter, ShapeKind.Free),
+    QuickTool(R.string.ie_brush_eraser, Icons.Rounded.AutoFixNormal, BrushKind.Eraser, ShapeKind.Free),
+)
+
+/**
+ * Short: pen / arrow / frame / marker / eraser, colour and size. Expanded: every brush, every
+ * shape, opacity and softness.
+ */
 @Composable
 fun DrawPanel(
     b: BrushSettings,
     backdrop: Backdrop,
     onPickColor: () -> Unit,
-    vm: ImageEditorViewModel
+    vm: ImageEditorViewModel,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-            items(BrushKind.entries.size) { i ->
-                val k = BrushKind.entries[i]
-                GlassToolButton(BrushIcons.getValue(k), brushLabel(k), b.brush == k, { vm.updateBrush { it.copy(brush = k) } })
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (expanded) {
+                    items(BrushKind.entries.size) { i ->
+                        val k = BrushKind.entries[i]
+                        GlassToolButton(BrushIcons.getValue(k), brushLabel(k), b.brush == k, { vm.updateBrush { it.copy(brush = k) } })
+                    }
+                } else {
+                    items(QuickTools.size) { i ->
+                        val q = QuickTools[i]
+                        GlassToolButton(q.icon, stringResource(q.labelRes), q.matches(b), { vm.updateBrush { it.copy(brush = q.brush, shape = q.shape) } })
+                    }
+                }
             }
+            PanelToggle(expanded, onToggle)
         }
-        if (b.brush != BrushKind.Eraser) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                items(ShapeIcons.size) { i ->
-                    val (shape, icon) = ShapeIcons[i]
-                    GlassToolButton(icon, null, b.shape == shape, { vm.updateBrush { it.copy(shape = shape) } }, accent = LiquidGlassColors.Purple)
+        PanelDetails(expanded) {
+            if (b.brush != BrushKind.Eraser) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    items(ShapeIcons.size) { i ->
+                        val (shape, icon) = ShapeIcons[i]
+                        GlassToolButton(icon, null, b.shape == shape, { vm.updateBrush { it.copy(shape = shape) } }, accent = LiquidGlassColors.Purple)
+                    }
                 }
             }
         }
@@ -448,38 +536,43 @@ fun DrawPanel(
                 }
             }
         }
-        when (b.brush) {
-            BrushKind.Blur, BrushKind.Pixelate -> SliderRow(
-                stringResource(R.string.ie_strength), b.effectStrength * 1000f, 5f..100f, backdrop,
-                onChange = { v -> vm.updateBrush { it.copy(effectStrength = v / 1000f) } }
-            )
-            BrushKind.Pen, BrushKind.Neon -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.weight(1f)) {
-                    SliderRow(stringResource(R.string.ie_opacity), b.alpha * 100f, 5f..100f, backdrop,
-                        onChange = { v -> vm.updateBrush { it.copy(alpha = v / 100f) } }, valueText = { "${it.roundToInt()}%" })
+        PanelDetails(expanded) {
+            when (b.brush) {
+                BrushKind.Blur, BrushKind.Pixelate -> SliderRow(
+                    stringResource(R.string.ie_strength), b.effectStrength * 1000f, 5f..100f, backdrop,
+                    onChange = { v -> vm.updateBrush { it.copy(effectStrength = v / 1000f) } }
+                )
+                BrushKind.Pen, BrushKind.Neon -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.weight(1f)) {
+                        SliderRow(stringResource(R.string.ie_opacity), b.alpha * 100f, 5f..100f, backdrop,
+                            onChange = { v -> vm.updateBrush { it.copy(alpha = v / 100f) } }, valueText = { "${it.roundToInt()}%" })
+                    }
+                    Box(Modifier.weight(1f)) {
+                        SliderRow(stringResource(R.string.ie_softness), b.softness * 100f, 0f..100f, backdrop,
+                            onChange = { v -> vm.updateBrush { it.copy(softness = v / 100f) } })
+                    }
                 }
-                Box(Modifier.weight(1f)) {
-                    SliderRow(stringResource(R.string.ie_softness), b.softness * 100f, 0f..100f, backdrop,
-                        onChange = { v -> vm.updateBrush { it.copy(softness = v / 100f) } })
-                }
+                else -> Unit
             }
-            else -> Unit
         }
     }
 }
 
 // ── Text ───────────────────────────────────────────────────────────────────────────────────
 
+/** Short: the text field and Add. Expanded: fonts, bold / italic, colours and opacity. */
 @Composable
 fun TextPanel(
     t: TextLayer,
     backdrop: Backdrop,
     onPickColor: (target: Int) -> Unit,
-    vm: ImageEditorViewModel
+    vm: ImageEditorViewModel,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
     val isDark = LocalIsDarkMode.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(
                 Modifier
                     .weight(1f)
@@ -498,24 +591,27 @@ fun TextPanel(
                 )
             }
             LiquidButton(onClick = { vm.applyText() }, backdrop = backdrop, tint = LiquidGlassColors.Blue) {
-                BasicText(stringResource(R.string.ie_text_add), style = TextStyle(Color.White, 14.sp, FontWeight.SemiBold))
+                BasicText(stringResource(R.string.ie_text_add), style = TextStyle(Color.White, 14.sp, FontWeight.SemiBold), maxLines = 1)
             }
+            PanelToggle(expanded, onToggle)
         }
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            items(TextFont.entries.size) { i ->
-                val f = TextFont.entries[i]
-                EditorChip(f.name, t.font == f, { vm.updateText { it.copy(font = f) } })
+        PanelDetails(expanded) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                items(TextFont.entries.size) { i ->
+                    val f = TextFont.entries[i]
+                    EditorChip(f.name, t.font == f, { vm.updateText { it.copy(font = f) } })
+                }
+                item { EditorChip(stringResource(R.string.ie_bold), t.bold, { vm.updateText { it.copy(bold = !it.bold) } }, accent = LiquidGlassColors.Purple) }
+                item { EditorChip(stringResource(R.string.ie_italic), t.italic, { vm.updateText { it.copy(italic = !it.italic) } }, accent = LiquidGlassColors.Purple) }
             }
-            item { EditorChip(stringResource(R.string.ie_bold), t.bold, { vm.updateText { it.copy(bold = !it.bold) } }, accent = LiquidGlassColors.Purple) }
-            item { EditorChip(stringResource(R.string.ie_italic), t.italic, { vm.updateText { it.copy(italic = !it.italic) } }, accent = LiquidGlassColors.Purple) }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            LabeledSwatch(stringResource(R.string.ie_color), t.color) { onPickColor(0) }
-            LabeledSwatch(stringResource(R.string.ie_outline), t.outlineColor) { onPickColor(1) }
-            LabeledSwatch(stringResource(R.string.ie_background), t.backgroundColor) { onPickColor(2) }
-            Box(Modifier.weight(1f)) {
-                SliderRow(stringResource(R.string.ie_opacity), t.alpha * 100f, 10f..100f, backdrop,
-                    onChange = { v -> vm.updateText { it.copy(alpha = v / 100f) } }, valueText = { "${it.roundToInt()}%" })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                LabeledSwatch(stringResource(R.string.ie_color), t.color) { onPickColor(0) }
+                LabeledSwatch(stringResource(R.string.ie_outline), t.outlineColor) { onPickColor(1) }
+                LabeledSwatch(stringResource(R.string.ie_background), t.backgroundColor) { onPickColor(2) }
+                Box(Modifier.weight(1f)) {
+                    SliderRow(stringResource(R.string.ie_opacity), t.alpha * 100f, 10f..100f, backdrop,
+                        onChange = { v -> vm.updateText { it.copy(alpha = v / 100f) } }, valueText = { "${it.roundToInt()}%" })
+                }
             }
         }
     }

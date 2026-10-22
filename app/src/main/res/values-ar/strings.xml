@@ -912,6 +912,10 @@
     <string name="ie_fx_crosshatch">تظليل متقاطع</string>
     <string name="ie_fx_halftone">نصف درجة</string>
     <string name="ie_fx_oil_paint">رسم زيتي</string>
+    <string name="ie_panel_expand">خيارات إضافية</string>
+    <string name="ie_panel_collapse">خيارات أقل</string>
+    <string name="ie_quick_arrow">سهم</string>
+    <string name="ie_quick_frame">إطار</string>
     <string name="ie_mask_rect">مستطيل</string>
     <string name="ie_mask_rounded">مدوّر</string>
     <string name="ie_mask_circle">دائرة</string>

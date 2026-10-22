@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">La cornice di ritaglio è tutta visibile</string>
+    <string name="docsy_new_crop_desc">Le maniglie inferiori finivano sotto il pannello. Ora la cornice può ridursi a un piccolo dettaglio.</string>
+    <string name="docsy_new_panel_title">Un pannello più corto</string>
+    <string name="docsy_new_panel_desc">Ritaglia, Disegna e Testo si aprono con una riga. La freccia mostra il resto.</string>
+    <string name="docsy_new_arrow_title">Una freccia in un tocco</string>
+    <string name="docsy_new_arrow_desc">Penna, freccia, cornice, evidenziatore e gomma sono nella prima riga di Disegna.</string>
+</resources>

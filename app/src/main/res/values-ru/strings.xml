@@ -942,6 +942,10 @@
     <string name="ie_fx_crosshatch">Штриховка</string>
     <string name="ie_fx_halftone">Растр</string>
     <string name="ie_fx_oil_paint">Масло</string>
+    <string name="ie_panel_expand">Больше настроек</string>
+    <string name="ie_panel_collapse">Свернуть</string>
+    <string name="ie_quick_arrow">Стрелка</string>
+    <string name="ie_quick_frame">Рамка</string>
     <string name="ie_mask_rect">Прямоугольник</string>
     <string name="ie_mask_rounded">Скруглённый</string>
     <string name="ie_mask_circle">Круг</string>

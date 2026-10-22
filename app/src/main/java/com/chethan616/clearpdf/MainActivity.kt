@@ -90,7 +90,13 @@ open class MainActivity : ComponentActivity() {
         // editor, .docx → the Word editor, everything else → the PDF viewer.
         val effectiveRoute = if (incomingPdfUri != null) {
             val incomingName = queryDisplayName(incomingPdfUri)
-            when (com.chethan616.clearpdf.utils.docKindOf(incomingName)) {
+            // Some apps hand over an image under a bare id ("44") or without an extension; the
+            // intent's MIME type still says what it is, so an image lands in the image editor.
+            val kind = com.chethan616.clearpdf.utils.docKindOf(incomingName).let { k ->
+                if (k == com.chethan616.clearpdf.utils.DocKind.Other && intent?.type?.startsWith("image/") == true)
+                    com.chethan616.clearpdf.utils.DocKind.Image else k
+            }
+            when (kind) {
                 com.chethan616.clearpdf.utils.DocKind.Excel -> "spreadsheet"
                 com.chethan616.clearpdf.utils.DocKind.Image -> "image_editor"
                 com.chethan616.clearpdf.utils.DocKind.Word ->

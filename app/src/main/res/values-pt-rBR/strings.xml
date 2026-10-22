@@ -935,6 +935,10 @@
     <string name="ie_fx_crosshatch">Hachura</string>
     <string name="ie_fx_halftone">Meio-tom</string>
     <string name="ie_fx_oil_paint">Pintura a óleo</string>
+    <string name="ie_panel_expand">Mais opções</string>
+    <string name="ie_panel_collapse">Menos opções</string>
+    <string name="ie_quick_arrow">Seta</string>
+    <string name="ie_quick_frame">Moldura</string>
     <string name="ie_mask_rect">Retângulo</string>
     <string name="ie_mask_rounded">Arredondado</string>
     <string name="ie_mask_circle">Círculo</string>

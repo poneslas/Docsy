@@ -306,10 +306,11 @@ class ImageCropperState {
         // An adaptive parent can report a taller max constraint after an orientation round trip
         // while the visible viewport keeps its old size. Reuse that viewport only when its width
         // still matches; a real orientation change must use the newly measured dimensions.
-        val snapshotSize = currentSnapshot?.containerSize ?: return measuredSize
-        if (this.imageKey != imageKey || snapshotSize.height <= 0) return measuredSize
-
-        return if (snapshotSize.width == measuredSize.width) snapshotSize else measuredSize
+        // Docsy: the editor's stage shrinks and grows under the cropper (the tool panel below it
+        // changes height), so the measured constraints are the real viewport. Reusing the old
+        // height here kept a taller crop area whose bottom handles sat under the panel; the crop
+        // rect survives the relayout through the normalised snapshot restore instead.
+        return measuredSize
     }
 
     private fun updateAvailability() {

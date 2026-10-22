@@ -942,6 +942,10 @@
     <string name="ie_fx_crosshatch">Crosshatch</string>
     <string name="ie_fx_halftone">Halftone</string>
     <string name="ie_fx_oil_paint">Oil paint</string>
+    <string name="ie_panel_expand">More options</string>
+    <string name="ie_panel_collapse">Fewer options</string>
+    <string name="ie_quick_arrow">Arrow</string>
+    <string name="ie_quick_frame">Frame</string>
     <string name="ie_mask_rect">Rectangle</string>
     <string name="ie_mask_rounded">Rounded</string>
     <string name="ie_mask_circle">Circle</string>

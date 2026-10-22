@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">A moldura de corte fica toda visível</string>
+    <string name="docsy_new_crop_desc">As alças inferiores ficavam embaixo do painel. Agora a moldura pode encolher até um detalhe pequeno.</string>
+    <string name="docsy_new_panel_title">Um painel mais curto</string>
+    <string name="docsy_new_panel_desc">Cortar, Desenhar e Texto abrem com uma linha. A seta mostra o resto.</string>
+    <string name="docsy_new_arrow_title">Uma seta em um toque</string>
+    <string name="docsy_new_arrow_desc">Caneta, seta, moldura, marcador e borracha estão na primeira linha de Desenhar.</string>
+</resources>

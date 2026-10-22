@@ -52,6 +52,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -141,6 +142,9 @@ fun ImageEditorScreen(
     var showDiscard by remember { mutableStateOf(false) }
     var comparing by remember { mutableStateOf(false) }
     var bottomHeight by remember { mutableIntStateOf(0) }
+    // Crop / Draw / Text open with a short row and remember, per tool, when the full set was asked for.
+    val expandedTools = remember { mutableStateMapOf<Tool, Boolean>() }
+    fun toggleExpanded(tool: Tool) { expandedTools[tool] = expandedTools[tool] != true }
 
     val requestBack = { if (state.hasEdits) showDiscard = true else onBack() }
     BackHandler(enabled = sheet == null && colorTarget == null && !showDiscard && state.hasEdits) { showDiscard = true }
@@ -291,13 +295,13 @@ fun ImageEditorScreen(
                             .padding(14.dp)
                     ) {
                         when (tool) {
-                            Tool.Crop -> CropPanel(state.crop, glass, viewModel)
+                            Tool.Crop -> CropPanel(state.crop, glass, viewModel, expandedTools[Tool.Crop] == true) { toggleExpanded(Tool.Crop) }
                             Tool.Adjust -> AdjustPanel(state.adjustValues, state.selectedAdjust, glass, viewModel)
                             Tool.Filters -> FiltersPanel(state.filterSource, state.filterThumbs, state.selectedFilter, state.filterIntensity, glass, viewModel)
-                            Tool.Draw -> DrawPanel(state.brush, glass, { colorTarget = ColorTarget.Brush }, viewModel)
+                            Tool.Draw -> DrawPanel(state.brush, glass, { colorTarget = ColorTarget.Brush }, viewModel, expandedTools[Tool.Draw] == true) { toggleExpanded(Tool.Draw) }
                             Tool.Text -> TextPanel(state.text, glass, { target ->
                                 colorTarget = when (target) { 0 -> ColorTarget.TextFill; 1 -> ColorTarget.TextOutline; else -> ColorTarget.TextBackground }
-                            }, viewModel)
+                            }, viewModel, expandedTools[Tool.Text] == true) { toggleExpanded(Tool.Text) }
                             Tool.More -> MorePanel(state, glass, viewModel) { sheet = it }
                         }
                     }

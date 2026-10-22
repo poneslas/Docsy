@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">Обрезка видна целиком</string>
+    <string name="docsy_new_crop_desc">Нижние ручки рамки прятались под панелью. Теперь рамку можно сжать до мелкой детали.</string>
+    <string name="docsy_new_panel_title">Панель короче</string>
+    <string name="docsy_new_panel_desc">«Обрезка», «Рисование» и «Текст» открываются одним рядом. Остальное — по стрелке.</string>
+    <string name="docsy_new_arrow_title">Стрелка в один тап</string>
+    <string name="docsy_new_arrow_desc">Перо, стрелка, рамка, маркер и ластик в первом ряду «Рисования».</string>
+</resources>

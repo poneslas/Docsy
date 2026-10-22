@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">El marco de recorte se ve entero</string>
+    <string name="docsy_new_crop_desc">Los tiradores inferiores quedaban bajo el panel. Ahora el marco puede reducirse a un detalle pequeño.</string>
+    <string name="docsy_new_panel_title">Un panel más corto</string>
+    <string name="docsy_new_panel_desc">Recortar, Dibujar y Texto abren con una fila. La flecha muestra el resto.</string>
+    <string name="docsy_new_arrow_title">Una flecha en un toque</string>
+    <string name="docsy_new_arrow_desc">Lápiz, flecha, marco, marcador y borrador están en la primera fila de Dibujar.</string>
+</resources>

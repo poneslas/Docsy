@@ -937,6 +937,10 @@
     <string name="ie_fx_crosshatch">Tramado</string>
     <string name="ie_fx_halftone">Semitono</string>
     <string name="ie_fx_oil_paint">Óleo</string>
+    <string name="ie_panel_expand">Más opciones</string>
+    <string name="ie_panel_collapse">Menos opciones</string>
+    <string name="ie_quick_arrow">Flecha</string>
+    <string name="ie_quick_frame">Marco</string>
     <string name="ie_mask_rect">Rectángulo</string>
     <string name="ie_mask_rounded">Redondeado</string>
     <string name="ie_mask_circle">Círculo</string>

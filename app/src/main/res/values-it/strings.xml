@@ -942,6 +942,10 @@
     <string name="ie_fx_crosshatch">Tratteggio</string>
     <string name="ie_fx_halftone">Mezzitoni</string>
     <string name="ie_fx_oil_paint">Pittura a olio</string>
+    <string name="ie_panel_expand">Altre opzioni</string>
+    <string name="ie_panel_collapse">Meno opzioni</string>
+    <string name="ie_quick_arrow">Freccia</string>
+    <string name="ie_quick_frame">Cornice</string>
     <string name="ie_mask_rect">Rettangolo</string>
     <string name="ie_mask_rounded">Arrotondato</string>
     <string name="ie_mask_circle">Cerchio</string>

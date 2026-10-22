@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">The crop frame is fully visible</string>
+    <string name="docsy_new_crop_desc">The bottom handles used to hide under the tool panel. The frame can now shrink to a small detail.</string>
+    <string name="docsy_new_panel_title">A shorter tool panel</string>
+    <string name="docsy_new_panel_desc">Crop, Draw and Text open with one row. The chevron shows everything else.</string>
+    <string name="docsy_new_arrow_title">An arrow in one tap</string>
+    <string name="docsy_new_arrow_desc">Pen, arrow, frame, marker and eraser sit in the first row of Draw.</string>
+</resources>

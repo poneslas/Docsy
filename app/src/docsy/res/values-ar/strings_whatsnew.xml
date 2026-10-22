@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
+<resources>
+    <string name="docsy_new_crop_title">إطار القص ظاهر بالكامل</string>
+    <string name="docsy_new_crop_desc">كانت المقابض السفلية تختفي تحت لوحة الأدوات. الآن يمكن تصغير الإطار إلى تفصيل صغير.</string>
+    <string name="docsy_new_panel_title">لوحة أدوات أقصر</string>
+    <string name="docsy_new_panel_desc">القص والرسم والنص تفتح بصف واحد. السهم يعرض الباقي.</string>
+    <string name="docsy_new_arrow_title">سهم بلمسة واحدة</string>
+    <string name="docsy_new_arrow_desc">القلم والسهم والإطار والقلم الملوّن والممحاة في الصف الأول من الرسم.</string>
+</resources>

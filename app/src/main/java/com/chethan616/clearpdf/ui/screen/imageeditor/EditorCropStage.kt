@@ -12,6 +12,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.chethan616.clearpdf.imageeditor.thirdparty.cropper.ImageCropper
 import com.chethan616.clearpdf.imageeditor.thirdparty.cropper.model.AspectRatio
@@ -73,7 +75,8 @@ fun EditorCropStage(
     val handle = LiquidGlassColors.Blue
     val currentOnCropped by rememberUpdatedState(onCropped)
     val currentOnPerspective by rememberUpdatedState(onPerspective)
-    Box(Modifier.fillMaxSize().padding(contentPadding).padding(8.dp)) {
+    // Corner handles are drawn outside the frame; keep them clear of the header and the panel.
+    Box(Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 8.dp, vertical = 14.dp)) {
         Crossfade(targetState = session.perspective, label = "cropMode") { perspective ->
             if (perspective) {
                 FreeCornersCropper(
@@ -95,12 +98,16 @@ fun EditorCropStage(
                     -1f -> AspectRatio(session.working.width / session.working.height.toFloat())
                     else -> AspectRatio(aspect.ratio)
                 }
+                // A screenshot fitted into the stage is narrow; the library's 100 dp minimum would
+                // forbid cutting out a small detail, so the frame may shrink to one finger width.
+                val minCrop = with(LocalDensity.current) { 44.dp.roundToPx() }
                 val props = CropDefaults.properties(
                     cropOutlineProperty = mask.property,
                     aspectRatio = ratio,
                     fixedAspectRatio = aspect.ratio != null,
                     overlayRatio = 1f,
-                    maxZoom = 8f
+                    maxZoom = 8f,
+                    minDimension = IntSize(minCrop, minCrop)
                 )
                 ImageCropper(
                     modifier = Modifier.fillMaxSize(),
