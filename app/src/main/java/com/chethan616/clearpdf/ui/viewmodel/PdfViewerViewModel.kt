@@ -992,13 +992,29 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         return null
     }
 
-    /** Exports to a temporary file, then copies it over [target] — the original is only touched once the export succeeded. */
+    /**
+     * Exports to a temporary file, then copies it over [target] — the original is only touched once
+     * the export succeeded. A backup of the original is kept until the new content has landed whole
+     * and put back if the copy fails midway (same approach as the spreadsheet and Word savers).
+     */
     private fun writeViaTempFile(context: Context, doc: PdfDocument, overlaysByPage: Map<Int, List<ExportOverlay>>, target: Uri) {
-        val tmp = File(context.cacheDir, "save-${System.currentTimeMillis()}.pdf")
+        val stamp = System.currentTimeMillis()
+        val tmp = File(context.cacheDir, "save-$stamp.pdf")
+        val backup = File(context.cacheDir, "save-$stamp.backup.pdf")
+        val cr = context.contentResolver
         try {
             exportWithPdfBox(context, doc, overlaysByPage, FileProvider.getUriForFile(context, "${context.packageName}.provider", tmp))
-            context.contentResolver.openOutputStream(target, "wt")?.use { out -> tmp.inputStream().use { it.copyTo(out) } }
-                ?: throw IllegalStateException("Cannot write $target")
+            val hadBackup = runCatching { cr.openInputStream(target)?.use { i -> backup.outputStream().use { i.copyTo(it) } } != null }.getOrDefault(false)
+            try {
+                cr.openOutputStream(target, "wt")?.use { out -> tmp.inputStream().use { it.copyTo(out) } }
+                    ?: throw IllegalStateException("Cannot write $target")
+                backup.delete()
+            } catch (e: Throwable) {
+                if (hadBackup) runCatching { cr.openOutputStream(target, "wt")?.use { o -> backup.inputStream().use { it.copyTo(o) } } }
+                    .onSuccess { backup.delete() }
+                // A failed restore leaves the backup in cache on purpose: it may be the last copy.
+                throw e
+            }
         } finally {
             tmp.delete()
         }
