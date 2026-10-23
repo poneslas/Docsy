@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: «Не сохранять» вместо «Отменить», чтобы не путать с «Отмена». -->
+<resources>
+    <string name="unsaved_discard">Don\'t Save</string>
+</resources>

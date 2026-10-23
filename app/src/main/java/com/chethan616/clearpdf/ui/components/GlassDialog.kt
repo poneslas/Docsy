@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -104,6 +105,8 @@ private val LocalDialogSurface = staticCompositionLocalOf { Color.Unspecified }
  *
  * Entrance: scrim fades in, panel scales 0.88 -> 1 with a spring while the lens strength ramps with
  * the same progress (ControlCenter-style progressive lens). Back press and scrim tap call [onDismiss].
+ *
+ * [onClose], when set, adds a small round glass ✕ at the top-right of the card, beside the title.
  */
 @Composable
 fun GlassDialog(
@@ -113,6 +116,7 @@ fun GlassDialog(
     title: String?,
     modifier: Modifier = Modifier,
     dismissOnScrimTap: Boolean = true,
+    onClose: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -208,7 +212,26 @@ fun GlassDialog(
                 LocalDialogBlur provides blurDp,
                 LocalDialogSurface provides containerColor
             ) {
-                if (title != null) {
+                if (onClose != null) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = 28f.dp, top = 16f.dp, end = 16f.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BasicText(
+                            title.orEmpty(),
+                            Modifier.weight(1f).padding(top = 8f.dp, end = 12f.dp, bottom = 8f.dp),
+                            style = TextStyle(contentColor, 22f.sp, FontWeight.SemiBold)
+                        )
+                        LiquidIconButton(
+                            onClick = onClose,
+                            backdrop = backdrop,
+                            modifier = Modifier.size(32.dp),
+                            surfaceColor = glassDialogPlatter(!isLight)
+                        ) {
+                            CloseCrossIcon(Modifier.size(12.dp), LiquidGlassColors.secondary(!isLight))
+                        }
+                    }
+                } else if (title != null) {
                     BasicText(
                         title,
                         Modifier.padding(28f.dp, 24f.dp, 28f.dp, 8f.dp),
@@ -235,8 +258,9 @@ fun GlassDialog(
 
 /**
  * Liquid-glass capsule action for [GlassDialog]'s `actions` slot, in the vivid "Get it"
- * [LiquidButton] style: primary = [tint] (screen accent), destructive = Red, neutral = clear glass
- * frosted like the panel. Each pill refracts the same live backdrop as the dialog.
+ * [LiquidButton] style: primary = [tint] (screen accent), neutral = clear glass frosted like the
+ * panel, destructive = the neutral platter with red SemiBold text (iOS-style, so a red action never
+ * outshouts the primary one). Each pill refracts the same live backdrop as the dialog.
  */
 @Composable
 fun RowScope.GlassDialogAction(
@@ -251,12 +275,12 @@ fun RowScope.GlassDialogAction(
     val isDark = LocalIsDarkMode.current
     val haptics = LocalHapticFeedback.current
     val backdrop = LocalDialogBackdrop.current ?: error("GlassDialogAction must be used inside GlassDialog")
-    val pillTint = when {
+    val pillTint = if (primary && !destructive) tint else Color.Unspecified
+    val fg = when {
         destructive -> LiquidGlassColors.Red
-        primary -> tint
-        else -> Color.Unspecified
+        pillTint != Color.Unspecified -> Color.White
+        else -> LiquidGlassColors.text(isDark)
     }
-    val fg = if (pillTint != Color.Unspecified) Color.White else LiquidGlassColors.text(isDark)
     LiquidButton(
         onClick = {
             if (enabled) {
@@ -271,10 +295,11 @@ fun RowScope.GlassDialogAction(
         tint = pillTint,
         // Neutral pills get a SOLID theme platter, not the panel's wash: they refract the screen
         // behind the dialog (not the panel), so a translucent fill let a white page show through
-        // under white ink — the blank "Cancel" pills. Primary/destructive pills are vivid tints.
+        // under white ink — the blank "Cancel" pills. Destructive pills share that platter (red ink);
+        // only the primary pill is a vivid tint.
         surfaceColor = if (pillTint == Color.Unspecified) glassDialogPlatter(isDark) else Color.Unspecified,
         blurRadius = LocalDialogBlur.current,
-        // Three equal actions must still leave room for translated labels such as “Discard”.
+        // Tight padding so a three-action row (e.g. "Replace file?") still fits translated labels.
         horizontalContentPadding = 8.dp
     ) {
         BasicText(

@@ -13,12 +13,14 @@ import com.kyant.backdrop.Backdrop
 
 /**
  * The one "Save changes?" card for every screen that can lose edits (xlsx, PDF / Office viewer,
- * image editor). Layout is the spreadsheet's original: title, one line of body, then
- * Discard (red) · Cancel (clear glass) · Save (accent) liquid pills.
+ * image editor). Title with a small glass ✕ at the top-right, one line of body, then two liquid
+ * pills: Don't Save (neutral, red text) · Save (accent) — the macOS / iOS layout.
+ *
+ * There is no Cancel pill: [onCancel] runs from the ✕, a scrim tap and system back.
  *
  * [backdrop] must be the screen's LIVE backdrop ([ScreenBackdrop.glass] or a viewer's
  * `contentBackdrop`) so the card refracts what is actually behind it. [onSave] must perform the
- * screen's real save and leave once it succeeds; [onCancel] also handles back / scrim tap.
+ * screen's real save and leave once it succeeds.
  */
 @Composable
 fun UnsavedChangesDialog(
@@ -38,9 +40,9 @@ fun UnsavedChangesDialog(
         onDismiss = onCancel,
         backdrop = backdrop,
         title = title,
+        onClose = onCancel,
         actions = {
             GlassDialogAction(stringResource(R.string.unsaved_discard), onClick = onDiscard, destructive = true)
-            GlassDialogAction(stringResource(R.string.cancel), onClick = onCancel)
             GlassDialogAction(saveLabel, onClick = onSave, primary = true, tint = accent)
         }
     ) {
