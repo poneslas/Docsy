@@ -448,7 +448,11 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
                 // The original uri is the identity of the thing the user opened. Re-opening from
                 // recents re-runs the conversion, which is correct: the converted file is a cache
                 // artifact, not the document.
-                RecentFilesManager.addRecent(context, RecentFile(
+                //
+                // For the same reason a PDF that "Open as PDF" made from a Word file, an image or a
+                // Markdown file (in `cache/converted_pdfs`) is not recorded: its original already
+                // is, and the row would point at a cache file that the system may clear.
+                if (!isConvertedCopy(context, uri)) RecentFilesManager.addRecent(context, RecentFile(
                     name = displayName,
                     uriString = uri.toString(),
                     timestamp = System.currentTimeMillis(),
@@ -1293,7 +1297,7 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
         return name.substringAfterLast('.', "pdf").lowercase()
     }
 
-    private fun queryFileName(context: Context, uri: Uri): String? = runCatching {
+    private fun queryFileName(context: Context, uri: Uri): String? = if (uri.scheme == "file") uri.lastPathSegment else runCatching {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
                 val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
@@ -1301,6 +1305,13 @@ class PdfViewerViewModel(private val openPdfUseCase: OpenPdfUseCase) : ViewModel
             } else null
         }
     }.getOrElse { null }
+
+    private fun isConvertedCopy(context: Context, uri: Uri): Boolean {
+        if (uri.scheme != "file") return false
+        val path = uri.path ?: return false
+        return runCatching { java.io.File(path).canonicalPath.startsWith(java.io.File(context.cacheDir, "converted_pdfs").canonicalPath + "/") }
+            .getOrDefault(false)
+    }
 
     private fun recycleBitmaps(bitmaps: List<Bitmap?>) {
         bitmaps.forEach { if (it != null && !it.isRecycled) it.recycle() }

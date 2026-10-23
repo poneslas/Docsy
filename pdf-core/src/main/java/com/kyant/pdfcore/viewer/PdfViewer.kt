@@ -200,6 +200,8 @@ class PdfViewerImpl : PdfViewer {
     }
 
     private fun queryFileName(context: Context, uri: Uri): String? {
+        // A plain file has no provider to ask; its name is the last path segment.
+        if (uri.scheme == "file") return uri.lastPathSegment
         return try {
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
