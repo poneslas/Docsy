@@ -637,8 +637,8 @@ fun PdfViewerScreen(
         showFindBar = false; findQuery = ""; viewModel.clearSearch()
     }
 
-    LaunchedEffect(state.document, controlsVisible, controlsPinned, activeTool, selectedMarkupGroup.size, editorToolsOpen, shareHolding, lastInteractionAtMs) {
-        if (state.document != null && controlsVisible && !controlsPinned && !autoScroll && scale <= 1.01f && activeTool == PdfEditTool.None && selectedMarkupGroup.size <= 1 && !editorToolsOpen && !shareHolding) {
+    LaunchedEffect(state.document, controlsVisible, controlsPinned, activeTool, selectedMarkupGroup.size, editorToolsOpen, showSignaturePad, shareHolding, lastInteractionAtMs) {
+        if (state.document != null && controlsVisible && !controlsPinned && !autoScroll && scale <= 1.01f && activeTool == PdfEditTool.None && selectedMarkupGroup.size <= 1 && !editorToolsOpen && !showSignaturePad && !shareHolding) {
             val snap = lastInteractionAtMs
             // Comfortable auto-hide window; any interaction bumps lastInteractionAtMs and
             // restarts this. It never fires while a tool is active (activeTool != None), while
@@ -646,7 +646,7 @@ fun PdfViewerScreen(
             // produces no pointer events for the viewer to see, so without that last guard the
             // chrome hid itself out from under the finger mid-gesture.
             delay(5000)
-            if (controlsVisible && !controlsPinned && !autoScroll && scale <= 1.01f && activeTool == PdfEditTool.None && selectedMarkupGroup.size <= 1 && !editorToolsOpen && !shareHolding && snap == lastInteractionAtMs)
+            if (controlsVisible && !controlsPinned && !autoScroll && scale <= 1.01f && activeTool == PdfEditTool.None && selectedMarkupGroup.size <= 1 && !editorToolsOpen && !showSignaturePad && !shareHolding && snap == lastInteractionAtMs)
                 controlsVisible = false
         }
     }
@@ -712,8 +712,47 @@ fun PdfViewerScreen(
         }
     }
 
-    BackHandler(enabled = state.document != null) {
-        if (!controlsVisible) controlsVisible = true else requestExit()
+    /** Pick an editing tool (or [PdfEditTool.None] to go back to the tool chips). */
+    fun setTool(tool: PdfEditTool) {
+        activeTool = tool
+        if (tool == PdfEditTool.None) activeImageId = null
+        selectedAnnoPage = null; selectedAnnoIndex = -1
+        if (tool != PdfEditTool.None) { selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet() }
+        textSelection.clear()
+    }
+
+    fun closeFind() {
+        showFindBar = false; focusManager.clearFocus(); findQuery = ""; viewModel.clearSearch()
+    }
+
+    /**
+     * Back peels one layer at a time, innermost first, and only leaves the viewer when nothing is
+     * open. Dialogs, sheets and the signature pad register their own handlers later in composition,
+     * so they still close first.
+     */
+    fun requestBack() {
+        when {
+            !controlsVisible -> controlsVisible = true
+            focusedForm != null -> focusedForm = null
+            textSelection.hasSelection -> textSelection.clear()
+            selectedAnnoIndex >= 0 || selectedMarkupGroup.isNotEmpty() -> {
+                selectedAnnoPage = null; selectedAnnoIndex = -1
+                selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet()
+            }
+            showFindBar -> closeFind()
+            activeImageId != null -> if (activeTool == PdfEditTool.Image) setTool(PdfEditTool.None) else activeImageId = null
+            activeTool != PdfEditTool.None -> setTool(PdfEditTool.None)
+            editorToolsOpen -> editorToolsOpen = false
+            else -> requestExit()
+        }
+    }
+
+    BackHandler(enabled = state.document != null) { requestBack() }
+
+    // Any active tool or selected image implies the Editor Tools panel is open, so Back closes the
+    // tool first and the panel after it.
+    LaunchedEffect(activeTool, activeImageId) {
+        if (activeTool != PdfEditTool.None || activeImageId != null) editorToolsOpen = true
     }
 
     // ── No-document state ─────────────────────────────────────────────────
@@ -868,17 +907,7 @@ fun PdfViewerScreen(
         }
     }
     val currentPageIndex = listState.firstVisibleItemIndex.coerceIn(0, safePageCount - 1)
-    // Back clears an active text selection first (registered after the viewer's own BackHandler, so
-    // it takes precedence), exactly like a TextView's selection mode.
-    val selectionActive by remember { derivedStateOf { textSelection.hasSelection } }
-    BackHandler(enabled = selectionActive) { textSelection.clear() }
-    val markupSelectionActive by remember { derivedStateOf { selectedAnnoIndex >= 0 || selectedMarkupGroup.isNotEmpty() } }
-    BackHandler(enabled = markupSelectionActive) {
-        selectedAnnoPage = null
-        selectedAnnoIndex = -1
-        selectedMarkupGroupPage = null
-        selectedMarkupGroup = emptySet()
-    }
+    // Back clearing a text or markup selection is part of requestBack().
     // Any editing tool owns the page gestures; a selection must not linger underneath it.
     LaunchedEffect(activeTool) { if (activeTool != PdfEditTool.None) textSelection.clear() }
 
@@ -1755,9 +1784,8 @@ fun PdfViewerScreen(
                     }
                     LiquidIconButton(
                         onClick = {
-                            showFindBar = !showFindBar
-                            if (showFindBar) viewModel.triggerOcrForAllPages(context)
-                            else { focusManager.clearFocus(); viewModel.clearSearch(); findQuery = "" }
+                            if (showFindBar) closeFind()
+                            else { showFindBar = true; viewModel.triggerOcrForAllPages(context) }
                         },
                         backdrop = contentBackdrop,
                         modifier = findInk.modifier
@@ -1915,13 +1943,7 @@ fun PdfViewerScreen(
                     canUndo            = undoStack.isNotEmpty() || annotationsByPage.any { it.value.isNotEmpty() },
                     onUndo             = { undoLastEdit(); lastInteractionAtMs = System.currentTimeMillis() },
                     onClearPage        = { clearVisiblePage(); lastInteractionAtMs = System.currentTimeMillis() },
-                    onSetActiveTool    = {
-                        activeTool = it
-                        if (it == PdfEditTool.None) activeImageId = null
-                        selectedAnnoPage = null; selectedAnnoIndex = -1
-                        if (it != PdfEditTool.None) { selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet() }
-                        textSelection.clear()
-                    },
+                    onSetActiveTool    = { setTool(it) },
                     onShowSignaturePad = { showSignaturePad = true },
                     onPickImage        = { activeImageId = null; imagePickerLauncher.launch("image/*") },
                     onZoomStep         = { step ->
@@ -1949,7 +1971,8 @@ fun PdfViewerScreen(
                     onDismissExportFeedback = { viewModel.clearExportFeedback() },
                     onOpenExportedFile = { state.lastExportedUri?.let { viewModel.openPdf(context, it) } },
                     onOpenAnotherPdf   = { pdfPickerLauncher.launch(arrayOf("*/*")) },
-                    onEditorOpenChanged = { editorToolsOpen = it },
+                    editorOpen         = editorToolsOpen,
+                    onEditorOpenChange = { editorToolsOpen = it },
                     // Bumping the timestamp on RELEASE is half the fix: otherwise the hold ends and
                     // the effect resumes a window that is already most of the way expired, so the
                     // chrome blinks out a moment after the finger lifts.
@@ -2013,7 +2036,7 @@ fun PdfViewerScreen(
                 onQueryChange     = { q -> findQuery = q; viewModel.searchText(q) },
                 onPrevMatch       = { viewModel.prevMatch(); lastInteractionAtMs = System.currentTimeMillis() },
                 onNextMatch       = { viewModel.nextMatch(); lastInteractionAtMs = System.currentTimeMillis() },
-                onClose           = { showFindBar = false; focusManager.clearFocus(); findQuery = ""; viewModel.clearSearch() }
+                onClose           = { closeFind() }
             )
         }
 

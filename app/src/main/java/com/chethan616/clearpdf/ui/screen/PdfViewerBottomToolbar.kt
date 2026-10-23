@@ -205,8 +205,11 @@ internal fun PdfViewerBottomToolbar(
     onShareDocument: () -> Unit,
     onToggleAutoScroll: () -> Unit,
     onCycleAutoScrollSpeed: () -> Unit,
-    onEditorOpenChanged: (Boolean) -> Unit = {},
-    // Same purpose as [onEditorOpenChanged]: a long-press on the share capsule is a gesture the
+    // Whether the Editor Tools panel is open. Owned by the viewer so Back can close it and it
+    // survives the chrome auto-hiding and returning.
+    editorOpen: Boolean,
+    onEditorOpenChange: (Boolean) -> Unit,
+    // A long-press on the share capsule is a gesture the
     // viewer cannot see, so without this the 5s chrome auto-hide fires mid-hold and takes the button
     // out from under the finger.
     onShareHoldChanged: (Boolean) -> Unit = {},
@@ -262,9 +265,6 @@ internal fun PdfViewerBottomToolbar(
         }
     }
 
-    // Collapsed by default (just the "Editor Tools" pill + "Open PDF" circle). Tapping
-    // the pill expands the tool set above it. Image selection auto-expands so its tools show.
-    var editorOpen by remember { mutableStateOf(false) }
     // Idle: the tool panels cover the FULL width (scale 1). While the share capsule is morphed up,
     // the panels above the Editor-Tools pill COMPRESS horizontally toward the left (scaleX), freeing
     // room for the cylinder — the whole pill + its buttons shrink together, so nothing is cut.
@@ -278,14 +278,6 @@ internal fun PdfViewerBottomToolbar(
         GlassMotion.morph(),
         label = "toolCompress"
     )
-    // Tell the viewer when the Editor Tools panel is open so it won't auto-hide the chrome.
-    LaunchedEffect(editorOpen, showSignaturePad) {
-        onEditorOpenChanged(editorOpen || showSignaturePad)
-    }
-    // Any active tool implies the editor is open (survives the chrome auto-hiding/returning).
-    LaunchedEffect(activeTool, activeImageId) {
-        if (activeTool != PdfEditTool.None || activeImageId != null) editorOpen = true
-    }
 
     // The share capsule lives as an OVERLAY sibling of the toolbar column inside this wrapper Box.
     // Both are bottom-anchored: when the capsule morphs taller than the column, the WRAPPER grows
@@ -699,8 +691,9 @@ internal fun PdfViewerBottomToolbar(
                 Box(Modifier.size(ReaderControlSize), contentAlignment = Alignment.Center) {
                     LiquidIconButton(
                         onClick = {
-                            editorOpen = !editorOpen
-                            if (!editorOpen) onSetActiveTool(PdfEditTool.None)
+                            val open = !editorOpen
+                            onEditorOpenChange(open)
+                            if (!open) onSetActiveTool(PdfEditTool.None)
                         },
                         backdrop = backdrop,
                         modifier = editorInk.modifier.size(ReaderControlSize),
