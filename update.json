@@ -1,20 +1,20 @@
 {
-  "version": "1.4",
-  "versionCode": 10400,
+  "version": "1.6",
+  "versionCode": 10600,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.4/Docsy-1.4-arm64.apk",
-      "sha256": "c0c879eeba22631e0ee1db1ca28b4bd4ea006ecfa4549dd5e573ff7e4d11e6e1",
-      "size": 33869610
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.6/Docsy-1.6-arm64.apk",
+      "sha256": "bf1429fa164ccd800a5a23cbe7bb7523e8f95241c21f7078931a4b8d18e1915f",
+      "size": 34054197
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.4/Docsy-1.4-universal.apk",
-      "sha256": "a7df9063a25506213c9987b3c3f5ab29963b2f4de28d1327c7aed03e8db9a451",
-      "size": 85516611
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.6/Docsy-1.6-universal.apk",
+      "sha256": "c71333a054af9b6aac30760866d0737414fd5e338a59854068d46a0e350cd4e0",
+      "size": 85701195
     }
   },
   "notes": {
-    "ru": "Доки переехали: эта версия встанет рядом. Старую копию потом удалите.",
-    "en": "Docsy has moved: this version installs alongside. Remove the old copy afterwards."
+    "ru": "Markdown страницей, логи и код с подсветкой, поиск, печать снова работает.",
+    "en": "Markdown as a page, logs and code with highlighting, find, printing works again."
   }
 }
