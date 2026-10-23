@@ -1,4 +1,4 @@
-package com.chethan616.clearpdf.utils.markdown
+package com.chethan616.clearpdf.utils
 
 import android.content.Context
 import android.os.Handler
@@ -6,20 +6,20 @@ import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.chethan616.clearpdf.util.OfflineWebContent
-import com.chethan616.clearpdf.utils.DocxWebRenderer
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Lays [MarkdownHtml]'s page out in an offscreen WebView and prints it to an A4 PDF, through the
- * same print route the Word renderer uses ([DocxWebRenderer.printToPdf]): real page breaks, a
- * table header repeated on each page. Where that route is unavailable it falls back to slicing.
+ * Lays a self-contained HTML page (the Markdown and text viewers' print pages) out in an offscreen
+ * WebView and prints it to an A4 PDF, through the same print route the Word renderer uses
+ * ([DocxWebRenderer.printToPdf]): real page breaks, a table header repeated on each page. Where
+ * that route is unavailable it falls back to slicing.
  *
  * JavaScript stays off and the WebView can't reach the network or any file.
  */
-internal object MarkdownPdf {
+internal object HtmlPagePdf {
 
     private const val TimeoutSeconds = 45L
 

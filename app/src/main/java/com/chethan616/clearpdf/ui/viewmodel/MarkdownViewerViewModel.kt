@@ -10,9 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.chethan616.clearpdf.data.repository.LocalDocumentMirror
 import com.chethan616.clearpdf.data.repository.RecentFile
 import com.chethan616.clearpdf.data.repository.RecentFilesManager
+import com.chethan616.clearpdf.utils.HtmlPagePdf
 import com.chethan616.clearpdf.utils.TextDecoding
 import com.chethan616.clearpdf.utils.markdown.MarkdownHtml
-import com.chethan616.clearpdf.utils.markdown.MarkdownPdf
 import com.chethan616.clearpdf.utils.markdown.MarkdownReader
 import com.chethan616.clearpdf.utils.markdown.MdDocument
 import kotlinx.coroutines.Dispatchers
@@ -83,7 +83,7 @@ class MarkdownViewerViewModel : ViewModel() {
             val out = withContext(Dispatchers.IO) {
                 val file = File(context.cacheDir, "converted_pdfs/${System.currentTimeMillis()}/${stem.replace('/', '_')}.pdf")
                 val html = MarkdownHtml.render(doc, stem)
-                if (MarkdownPdf.render(context.applicationContext, html, file)) Uri.fromFile(file) else null
+                if (HtmlPagePdf.render(context.applicationContext, html, file)) Uri.fromFile(file) else null
             }
             pdf = out
             onDone(out)

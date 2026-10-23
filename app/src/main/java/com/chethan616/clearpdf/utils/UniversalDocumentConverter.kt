@@ -81,8 +81,9 @@ object UniversalDocumentConverter {
     // ── Plain text / CSV ───────────────────────────────────────────────────────
 
     private fun convertTextToPdf(context: Context, sourceUri: Uri): Uri {
+        // Not the platform charset: a Russian .txt is often windows-1251, and UTF-16 has no other tell.
         val lines = context.contentResolver.openInputStream(sourceUri)?.use { stream ->
-            BufferedReader(InputStreamReader(stream)).readLines()
+            TextDecoding.decode(stream.readBytes()).lines()
         } ?: emptyList()
 
         val paint = bodyPaint(Typeface.MONOSPACE, 11f)

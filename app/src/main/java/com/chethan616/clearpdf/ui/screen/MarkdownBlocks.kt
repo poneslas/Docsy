@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.text.AnnotatedString
@@ -56,6 +57,7 @@ import com.chethan616.clearpdf.utils.markdown.MdBlock
 import com.chethan616.clearpdf.utils.markdown.MdSpan
 import com.chethan616.clearpdf.utils.markdown.MdStyle
 import com.chethan616.clearpdf.utils.markdown.MdText
+import com.chethan616.clearpdf.utils.text.Grammars
 
 /** The page's colours, from the paper (light or dark), not the app theme. */
 @Immutable
@@ -107,8 +109,8 @@ internal fun MdBlockView(block: MdBlock, c: MdColors, imageLabel: String, onLink
         }
         is MdBlock.Paragraph -> Paragraph(block.text, c, imageLabel, onLink)
         is MdBlock.Code -> CodeBox(block.code, block.language, c)
-        is MdBlock.FrontMatter -> CodeBox(block.raw, "yaml", c, muted = true)
-        is MdBlock.Html -> CodeBox(block.raw, "html", c, muted = true)
+        is MdBlock.FrontMatter -> CodeBox(block.raw, "yaml", c)
+        is MdBlock.Html -> CodeBox(block.raw, "html", c)
         is MdBlock.Rule -> Box(Modifier.padding(vertical = 6.dp).fillMaxWidth().height(2.dp).background(c.border))
         is MdBlock.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(3.dp).fillMaxHeight().clip(RoundedCornerShape(2.dp)).background(c.border))
@@ -128,7 +130,10 @@ private fun Paragraph(text: MdText, c: MdColors, imageLabel: String, onLink: (St
 }
 
 @Composable
-private fun CodeBox(code: String, language: String?, c: MdColors, muted: Boolean = false) {
+private fun CodeBox(code: String, language: String?, c: MdColors) {
+    val dark = c.paper.luminance() < 0.5f
+    // Same rules and colours as the text viewer, so a ```json block reads like a .json file.
+    val text = remember(code, language, dark) { highlightBlock(code, Grammars.forLanguage(language), dark) }
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.codeBg).padding(vertical = 10.dp)
     ) {
@@ -138,7 +143,7 @@ private fun CodeBox(code: String, language: String?, c: MdColors, muted: Boolean
         )
         // Code keeps its lines: it scrolls sideways inside its box, the page never does.
         Box(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 14.dp)) {
-            BasicText(code, style = TextStyle(if (muted) c.sub else c.ink, 13.5.sp, fontFamily = Mono, lineHeight = 20.sp), softWrap = false)
+            BasicText(text, style = TextStyle(c.ink, 13.5.sp, fontFamily = Mono, lineHeight = 20.sp), softWrap = false)
         }
     }
 }

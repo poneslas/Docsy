@@ -85,7 +85,8 @@ class MarkdownReaderTest {
         assertEquals("Text bold\nnext", p.text.text)
         val html = MarkdownHtml.render(MdDocument(b), "<t>")
         assertFalse(html.contains("<div onclick"))
-        assertTrue(html.contains("&lt;div onclick=&quot;x()&quot;&gt;"))
+        // Shown as highlighted source: escaped, split into coloured spans.
+        assertTrue(html.contains("onclick") && html.contains("&lt;"))
         assertTrue(html.contains("<title>&lt;t&gt;</title>"))
     }
 

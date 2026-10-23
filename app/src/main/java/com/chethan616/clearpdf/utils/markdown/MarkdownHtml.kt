@@ -1,5 +1,8 @@
 package com.chethan616.clearpdf.utils.markdown
 
+import com.chethan616.clearpdf.utils.text.Grammars
+import com.chethan616.clearpdf.utils.text.TextHtml
+
 /**
  * The print page for an [MdDocument]: self-contained HTML (no scripts, no remote resources) laid
  * out for A4 paper. It is built from the same blocks the screen draws, never from the source, and
@@ -21,9 +24,10 @@ object MarkdownHtml {
         when (b) {
             is MdBlock.Heading -> append("<h${b.level} id=\"${esc(b.anchor)}\">").inline(b.text).append("</h${b.level}>")
             is MdBlock.Paragraph -> append("<p>").inline(b.text).append("</p>")
-            is MdBlock.Code -> append("<pre><code>").append(esc(b.code)).append("</code></pre>")
-            is MdBlock.FrontMatter -> append("<pre class=\"front\"><code>").append(esc(b.raw)).append("</code></pre>")
-            is MdBlock.Html -> append("<pre class=\"html\"><code>").append(esc(b.raw)).append("</code></pre>")
+            // Highlighted with the text viewer's rules; the highlighter escapes the text itself.
+            is MdBlock.Code -> append("<pre><code>").append(TextHtml.highlighted(b.code, Grammars.forLanguage(b.language))).append("</code></pre>")
+            is MdBlock.FrontMatter -> append("<pre><code>").append(TextHtml.highlighted(b.raw, Grammars.Yaml)).append("</code></pre>")
+            is MdBlock.Html -> append("<pre><code>").append(TextHtml.highlighted(b.raw, Grammars.Xml)).append("</code></pre>")
             is MdBlock.Quote -> { append("<blockquote>"); b.blocks.forEach { block(it) }; append("</blockquote>") }
             is MdBlock.Rule -> append("<hr>")
             is MdBlock.ListBlock -> {
@@ -156,7 +160,6 @@ object MarkdownHtml {
         code { font-family: monospace; font-size: .88em; background: #eff1f3; border-radius: 4px; padding: .1em .3em; }
         pre { background: #f6f8fa; border-radius: 6px; padding: .8em 1em; white-space: pre-wrap; overflow-wrap: anywhere; }
         pre code { background: none; padding: 0; font-size: .85em; }
-        pre.front, pre.html { color: #59636e; }
         a { color: #0969da; text-decoration: underline; }
         mark { background: #fff8c5; }
         hr { border: 0; border-top: 2px solid #d1d9e0; margin: 1.2em 0; }

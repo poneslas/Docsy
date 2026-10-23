@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text viewer (logs, JSON, XML, code…). -->
+<resources>
+    <string name="tv_wrap">التفاف الأسطر</string>
+    <string name="tv_format">تنسيق</string>
+    <string name="tv_line_count">الأسطر: %1$s</string>
+    <string name="tv_truncated">يُعرض أول %1$d ميغابايت من الملف فقط</string>
+    <string name="tv_lang_plain">نص عادي</string>
+    <string name="tv_lang_log">سجل</string>
+    <string name="tv_lang_code">شيفرة</string>
+    <string name="tv_lang_script">سكربت</string>
+    <string name="tv_highlight_title">التلوين</string>
+</resources>

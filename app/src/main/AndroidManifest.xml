@@ -156,6 +156,23 @@
                 <data android:mimeType="text/x-markdown" />
             </intent-filter>
 
+            <!-- Open logs, data and config files (read-only text viewer); text/plain is above -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="application/xml" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="application/yaml" />
+                <data android:mimeType="application/x-yaml" />
+                <data android:mimeType="text/yaml" />
+                <data android:mimeType="text/x-log" />
+            </intent-filter>
+
             <!-- Open image files -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

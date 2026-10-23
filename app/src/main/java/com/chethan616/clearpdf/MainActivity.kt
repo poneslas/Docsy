@@ -104,13 +104,19 @@ open class MainActivity : ComponentActivity() {
             // Some apps hand over an image under a bare id ("44") or without an extension; the
             // intent's MIME type still says what it is, so an image lands in the image editor.
             val kind = com.chethan616.clearpdf.utils.docKindOf(incomingName).let { k ->
-                if (k == com.chethan616.clearpdf.utils.DocKind.Other && intent?.type?.startsWith("image/") == true)
-                    com.chethan616.clearpdf.utils.DocKind.Image else k
+                when {
+                    k != com.chethan616.clearpdf.utils.DocKind.Other -> k
+                    intent?.type?.startsWith("image/") == true -> com.chethan616.clearpdf.utils.DocKind.Image
+                    intent?.type?.let { it.startsWith("text/") || it.contains("json") || it.contains("xml") || it.contains("yaml") } == true ->
+                        com.chethan616.clearpdf.utils.DocKind.Text
+                    else -> k
+                }
             }
             when (kind) {
                 com.chethan616.clearpdf.utils.DocKind.Excel -> "spreadsheet"
                 com.chethan616.clearpdf.utils.DocKind.Image -> "image_editor"
                 com.chethan616.clearpdf.utils.DocKind.Markdown -> "markdown_viewer"
+                com.chethan616.clearpdf.utils.DocKind.Text -> "text_viewer"
                 com.chethan616.clearpdf.utils.DocKind.Word ->
                     if (incomingName?.lowercase()?.trim()?.endsWith(".docx") == true) "docx_editor" else "pdf_viewer"
                 else -> "pdf_viewer"
@@ -154,12 +160,15 @@ open class MainActivity : ComponentActivity() {
         val supportedExtension = listOf(
             ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".csv", ".txt", ".rtf",
             ".odt", ".ods", ".odp", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".heic",
-            ".md", ".markdown"
+            ".md", ".markdown", ".log", ".json", ".xml", ".yaml", ".yml", ".ini", ".conf", ".toml"
         ).any(lower::contains)
         return mimeType == null ||
             mimeType == "application/pdf" ||
             mimeType?.startsWith("image/") == true ||
             mimeType?.startsWith("text/") == true ||
+            mimeType?.contains("json", ignoreCase = true) == true ||
+            mimeType?.contains("xml", ignoreCase = true) == true ||
+            mimeType?.contains("yaml", ignoreCase = true) == true ||
             mimeType?.contains("word", ignoreCase = true) == true ||
             mimeType?.contains("excel", ignoreCase = true) == true ||
             mimeType?.contains("spreadsheet", ignoreCase = true) == true ||

@@ -72,6 +72,7 @@ import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridOn
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Article
+import androidx.compose.material.icons.rounded.TextSnippet
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.PictureAsPdf
@@ -1386,5 +1387,6 @@ private fun kindVisual(kind: DocKind): Triple<ImageVector, Color, String> = when
     DocKind.Ppt   -> Triple(Icons.Rounded.Slideshow,    Color(0xFFE8722B), "PPT")
     DocKind.Image -> Triple(Icons.Rounded.Image,        Color(0xFF8E5AF2), "IMG")
     DocKind.Markdown -> Triple(Icons.Rounded.Article,   Color(0xFF4A6A8A), "MD")
+    DocKind.Text  -> Triple(Icons.Rounded.TextSnippet,  Color(0xFF5B6B7B), "TXT")
     DocKind.Other -> Triple(Icons.Rounded.Description,  Color(0xFF8E8E93), "FILE")
 }

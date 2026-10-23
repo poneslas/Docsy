@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text viewer (logs, JSON, XML, code…). -->
+<resources>
+    <string name="tv_wrap">A capo automatico</string>
+    <string name="tv_format">Formatta</string>
+    <string name="tv_line_count">Righe: %1$s</string>
+    <string name="tv_truncated">Sono mostrati solo i primi %1$d MB del file</string>
+    <string name="tv_lang_plain">Testo semplice</string>
+    <string name="tv_lang_log">Log</string>
+    <string name="tv_lang_code">Codice</string>
+    <string name="tv_lang_script">Script</string>
+    <string name="tv_highlight_title">Evidenziazione</string>
+</resources>

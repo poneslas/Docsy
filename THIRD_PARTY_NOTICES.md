@@ -16,6 +16,17 @@ ClearPDF uses open-source components and keeps their notices with the project. R
 - Use: parsing Markdown files (GitHub flavour: tables, task lists, strikethrough, autolinks) for the read-only Markdown viewer. Only the syntax tree is used; the viewer draws the document natively and lays out its print PDF itself. Raw HTML in a file is shown as text, never interpreted.
 - Notice practice: keep the Apache 2.0 license and upstream attribution available with redistributed builds.
 
+## Syntax highlighting rules and colours
+
+The text viewer's highlighter (`utils/text/`) is the app's own code. Its rules are translations of these grammars, rewritten for Java's regex engine; no grammar file is bundled:
+
+- Log files: "Log File Highlighter" `log.tmLanguage` by Emil Åström (https://github.com/emilast/vscode-logfile-highlighter), MIT License. VS Code ships the same grammar as its built-in log language.
+- JSON and XML: Visual Studio Code's built-in grammars (https://github.com/microsoft/vscode, `extensions/json`, `extensions/xml`), MIT License, Copyright (c) Microsoft Corporation.
+- INI: textmate/ini.tmbundle (https://github.com/textmate/ini.tmbundle), under the TextMate bundle license ("Permission to copy, use, modify, sell and distribute this software is granted").
+- YAML: Prism's `yaml` component (https://github.com/PrismJS/prism), MIT License, Copyright (c) 2012 Lea Verou, with VS Code's YAML scope names.
+- Colours: Visual Studio Code's Light+ and Dark+ themes (https://github.com/microsoft/vscode, `extensions/theme-defaults`), MIT License, Copyright (c) Microsoft Corporation.
+- Notice practice: keep these attributions and the MIT permission notices with redistributed source/builds.
+
 ## Carlito font
 
 - Files: `app/src/main/res/font/carlito_regular.ttf`, `carlito_bold.ttf`

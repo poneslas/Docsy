@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text viewer (logs, JSON, XML, code…). -->
+<resources>
+    <string name="tv_wrap">Переносить строки</string>
+    <string name="tv_format">Форматировать</string>
+    <string name="tv_line_count">Строк: %1$s</string>
+    <string name="tv_truncated">Показаны первые %1$d МБ файла</string>
+    <string name="tv_lang_plain">Без подсветки</string>
+    <string name="tv_lang_log">Лог</string>
+    <string name="tv_lang_code">Код</string>
+    <string name="tv_lang_script">Скрипт</string>
+    <string name="tv_highlight_title">Подсветка</string>
+</resources>
