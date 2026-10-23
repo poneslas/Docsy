@@ -1,9 +1,10 @@
 package com.chethan616.clearpdf.update
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowRightAlt
-import androidx.compose.material.icons.rounded.Crop
-import androidx.compose.material.icons.rounded.UnfoldLess
+import androidx.compose.material.icons.rounded.Article
+import androidx.compose.material.icons.rounded.Print
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.TextSnippet
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.chethan616.clearpdf.R
@@ -23,9 +24,10 @@ import com.chethan616.clearpdf.ui.theme.LiquidGlassColors
  */
 object DocsyWhatsNew {
     val items: List<DocsyWhatsNewItem> = listOf(
-        DocsyWhatsNewItem(Icons.Rounded.Crop, LiquidGlassColors.Blue, R.string.docsy_new_crop_title, R.string.docsy_new_crop_desc),
-        DocsyWhatsNewItem(Icons.Rounded.UnfoldLess, LiquidGlassColors.Purple, R.string.docsy_new_panel_title, R.string.docsy_new_panel_desc),
-        DocsyWhatsNewItem(Icons.Rounded.ArrowRightAlt, LiquidGlassColors.Red, R.string.docsy_new_arrow_title, R.string.docsy_new_arrow_desc),
+        DocsyWhatsNewItem(Icons.Rounded.Article, LiquidGlassColors.Blue, R.string.docsy_new_markdown_title, R.string.docsy_new_markdown_desc),
+        DocsyWhatsNewItem(Icons.Rounded.TextSnippet, LiquidGlassColors.Purple, R.string.docsy_new_text_title, R.string.docsy_new_text_desc),
+        DocsyWhatsNewItem(Icons.Rounded.Search, LiquidGlassColors.Orange, R.string.docsy_new_find_title, R.string.docsy_new_find_desc),
+        DocsyWhatsNewItem(Icons.Rounded.Print, LiquidGlassColors.Green, R.string.docsy_new_print_title, R.string.docsy_new_print_desc),
     )
 }
 

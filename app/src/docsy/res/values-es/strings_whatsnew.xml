@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_crop_title">El marco de recorte se ve entero</string>
-    <string name="docsy_new_crop_desc">Los tiradores inferiores quedaban bajo el panel. Ahora el marco puede reducirse a un detalle pequeño.</string>
-    <string name="docsy_new_panel_title">Un panel más corto</string>
-    <string name="docsy_new_panel_desc">Recortar, Dibujar y Texto abren con una fila. La flecha muestra el resto.</string>
-    <string name="docsy_new_arrow_title">Una flecha en un toque</string>
-    <string name="docsy_new_arrow_desc">Lápiz, flecha, marco, marcador y borrador están en la primera fila de Dibujar.</string>
+    <string name="docsy_new_markdown_title">Markdown se abre como página</string>
+    <string name="docsy_new_markdown_desc">Títulos, listas, código y tablas. Una tabla ancha se desplaza en su propio marco.</string>
+    <string name="docsy_new_text_title">Registros, JSON, XML y código</string>
+    <string name="docsy_new_text_desc">Números de línea y resaltado. JSON y XML en una línea se ordenan por niveles.</string>
+    <string name="docsy_new_find_title">Buscar en texto y Markdown</string>
+    <string name="docsy_new_find_desc">La misma barra de búsqueda que en PDF y Word, con todas las coincidencias marcadas.</string>
+    <string name="docsy_new_print_title">Imprimir vuelve a funcionar</string>
+    <string name="docsy_new_print_desc">Imprimir abre el diálogo de la impresora en PDF, Word y los nuevos visores.</string>
 </resources>
