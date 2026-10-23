@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: короткие подписи чипов в меню редактирования вьюера. Заголовки диалогов
+     (anno_text_title, anno_note_title) остаются в upstream и здесь не меняются. -->
+<resources>
+    <string name="viewer_tool_draw">Рисовать</string>
+    <string name="viewer_tool_image">Изображение</string>
+    <string name="viewer_tool_text">Текст</string>
+    <string name="viewer_tool_note">Заметка</string>
+</resources>

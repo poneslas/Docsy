@@ -1922,11 +1922,6 @@ fun PdfViewerScreen(
                         if (it != PdfEditTool.None) { selectedMarkupGroupPage = null; selectedMarkupGroup = emptySet() }
                         textSelection.clear()
                     },
-                    onToggleFindBar    = {
-                        showFindBar = !showFindBar
-                        if (showFindBar) viewModel.triggerOcrForAllPages(context)
-                        else { focusManager.clearFocus(); viewModel.clearSearch(); findQuery = "" }
-                    },
                     onShowSignaturePad = { showSignaturePad = true },
                     onPickImage        = { activeImageId = null; imagePickerLauncher.launch("image/*") },
                     onZoomStep         = { step ->

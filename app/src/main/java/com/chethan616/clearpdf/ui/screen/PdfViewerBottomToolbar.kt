@@ -46,7 +46,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.Brush
+import androidx.compose.material.icons.automirrored.rounded.StickyNote2
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material.icons.rounded.AddPhotoAlternate
+import androidx.compose.material.icons.rounded.AutoFixNormal
+import androidx.compose.material.icons.rounded.Draw
+import androidx.compose.material.icons.rounded.Highlight
+import androidx.compose.material.icons.rounded.HighlightAlt
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CropSquare
 import androidx.compose.material.icons.rounded.Delete
@@ -58,11 +66,9 @@ import androidx.compose.material.icons.rounded.FormatListNumbered
 import androidx.compose.material.icons.rounded.Gesture
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Slideshow
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.SwapVert
-import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.ZoomOut
 import androidx.compose.material.icons.rounded.IosShare
@@ -82,6 +88,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -128,6 +135,32 @@ private fun ViewerGlassOverflowSurface(
     }
 }
 
+/**
+ * One tool chip in the editor menu: icon + short label on the tool's own colour. White ink reads on
+ * all of them; an idle tool sits a shade deeper than the active one.
+ */
+@Composable
+private fun ToolChip(
+    icon: ImageVector,
+    label: String,
+    tint: Color,
+    active: Boolean,
+    backdrop: LayerBackdrop,
+    onClick: () -> Unit
+) {
+    LiquidButton(
+        onClick = onClick,
+        backdrop = backdrop,
+        tint = tint,
+        surfaceColor = if (active) Color.Unspecified else Color.Black.copy(0.10f)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, null, Modifier.size(14.dp), Color.White)
+            BasicText(label, style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
+        }
+    }
+}
+
 @Composable
 internal fun PdfViewerBottomToolbar(
     readerTourStep: Int,
@@ -159,7 +192,6 @@ internal fun PdfViewerBottomToolbar(
     onUndo: () -> Unit,
     onClearPage: () -> Unit,
     onSetActiveTool: (PdfEditTool) -> Unit,
-    onToggleFindBar: () -> Unit,
     onShowSignaturePad: () -> Unit,
     onPickImage: () -> Unit,
     onZoomStep: (Float) -> Unit,
@@ -336,10 +368,10 @@ internal fun PdfViewerBottomToolbar(
                                 // Word docs only get the Highlight tool here (no pen/shapes) — a
                                 // curated markup experience; other doc kinds get the full shape set.
                                 val drawTools = if (docKind == DocKind.Word) listOf(
-                                    Triple(PdfEditTool.Highlight, Icons.Rounded.Brush, R.string.viewer_highlight)
+                                    Triple(PdfEditTool.Highlight, Icons.Rounded.Highlight, R.string.viewer_highlight)
                                 ) else listOf(
-                                    Triple(PdfEditTool.Draw,      Icons.Rounded.Edit,                 R.string.viewer_pen),
-                                    Triple(PdfEditTool.Highlight, Icons.Rounded.Brush,                R.string.viewer_highlight),
+                                    Triple(PdfEditTool.Draw,      Icons.Rounded.Draw,                 R.string.viewer_pen),
+                                    Triple(PdfEditTool.Highlight, Icons.Rounded.Highlight,            R.string.viewer_highlight),
                                     Triple(PdfEditTool.Rect,      Icons.Rounded.CropSquare,           R.string.viewer_rect),
                                     Triple(PdfEditTool.Ellipse,   Icons.Rounded.RadioButtonUnchecked, R.string.viewer_oval),
                                     Triple(PdfEditTool.Line,      Icons.Rounded.Remove,               R.string.viewer_line),
@@ -367,7 +399,7 @@ internal fun PdfViewerBottomToolbar(
                                     onClick  = onUndo,
                                     backdrop = backdrop,
                                     modifier = Modifier.size(40.dp)
-                                ) { Icon(Icons.Rounded.Undo, stringResource(R.string.viewer_undo), Modifier.size(19.dp), fg.copy(if (canUndo) 1f else 0.35f)) }
+                                ) { Icon(Icons.AutoMirrored.Rounded.Undo, stringResource(R.string.viewer_undo), Modifier.size(19.dp), fg.copy(if (canUndo) 1f else 0.35f)) }
                                 LiquidIconButton(
                                     onClick  = onClearPage,
                                     backdrop = backdrop,
@@ -509,8 +541,8 @@ internal fun PdfViewerBottomToolbar(
                     }
                 }
             } else if (docKind == DocKind.Word) {
-                // Curated Word reading/markup set — Select Text, Highlight, Find. No PDF-centric
-                // shapes / add-image / text-box / note / eraser / sign.
+                // Curated Word markup set — Highlight only. No PDF-centric shapes / add-image /
+                // text-box / note / eraser / sign. Find lives in the header only.
                 val wordScroll = rememberScrollState()
                 ViewerGlassOverflowSurface(
                     modifier = Modifier.fillMaxWidth()
@@ -530,20 +562,9 @@ internal fun PdfViewerBottomToolbar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Vivid "Get it" glass tint; an idle tool sits a shade deeper than the active one.
-                    fun wDim(active: Boolean) = if (active) Color.Unspecified else Color.Black.copy(0.10f)
                     val hlOn = activeTool == PdfEditTool.Highlight
-                    LiquidButton(onClick = { onSetActiveTool(if (hlOn) PdfEditTool.None else PdfEditTool.Highlight) }, backdrop = backdrop, tint = Color(0xFFF9A825), surfaceColor = wDim(hlOn)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Brush, null, Modifier.size(14.dp), Color.White)
-                            BasicText(stringResource(R.string.viewer_highlight), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                        }
-                    }
-                    LiquidButton(onClick = onToggleFindBar, backdrop = backdrop, tint = Color(0xFF0277BD), surfaceColor = wDim(showFindBar)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Search, null, Modifier.size(14.dp), Color.White)
-                            BasicText(stringResource(R.string.viewer_find), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                        }
+                    ToolChip(Icons.Rounded.Highlight, stringResource(R.string.viewer_highlight), Color(0xFFF9A825), hlOn, backdrop) {
+                        onSetActiveTool(if (hlOn) PdfEditTool.None else PdfEditTool.Highlight)
                     }
                 }
                 }
@@ -566,75 +587,38 @@ internal fun PdfViewerBottomToolbar(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Each tool wears its own professional colour (like the Sign button):
-                // a solid colour chip, brighter when active. White ink reads on all of them.
-                // Vivid "Get it" glass tint; an idle tool sits a shade deeper than the active one.
-                fun toolDim(active: Boolean) = if (active) Color.Unspecified else Color.Black.copy(0.10f)
-
                 val drawOn = drawingToolActive
-                LiquidButton(
-                    onClick  = { onSetActiveTool(if (drawOn) PdfEditTool.None else PdfEditTool.Draw) },
-                    backdrop = backdrop,
-                    tint = Color(0xFF0097A7), surfaceColor = toolDim(drawOn)
-                ) { BasicText(stringResource(R.string.viewer_draw_tools), style = TextStyle(Color.White, 12.sp, FontWeight.Medium)) }
+                ToolChip(Icons.Rounded.Draw, stringResource(R.string.viewer_tool_draw), Color(0xFF0097A7), drawOn, backdrop) {
+                    onSetActiveTool(if (drawOn) PdfEditTool.None else PdfEditTool.Draw)
+                }
 
                 val lassoOn = activeTool == PdfEditTool.Lasso
-                LiquidButton(
-                    onClick = { onSetActiveTool(if (lassoOn) PdfEditTool.None else PdfEditTool.Lasso) },
-                    backdrop = backdrop,
-                    tint = Color(0xFF0A84FF), surfaceColor = toolDim(lassoOn)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.Gesture, null, Modifier.size(14.dp), Color.White)
-                        BasicText(stringResource(R.string.viewer_lasso), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                    }
+                ToolChip(Icons.Rounded.HighlightAlt, stringResource(R.string.viewer_lasso), Color(0xFF0A84FF), lassoOn, backdrop) {
+                    onSetActiveTool(if (lassoOn) PdfEditTool.None else PdfEditTool.Lasso)
                 }
 
                 val imgOn = activeTool == PdfEditTool.Image
-                LiquidButton(
-                    onClick  = { onPickImage() },
-                    backdrop = backdrop,
-                    tint = Color(0xFF1565C0), surfaceColor = toolDim(imgOn)
-                ) { BasicText(stringResource(R.string.viewer_add_image), style = TextStyle(Color.White, 12.sp, FontWeight.Medium)) }
+                ToolChip(Icons.Rounded.AddPhotoAlternate, stringResource(R.string.viewer_tool_image), Color(0xFF1565C0), imgOn, backdrop) {
+                    onPickImage()
+                }
 
                 val textOn = activeTool == PdfEditTool.Text
-                LiquidButton(
-                    onClick  = { onSetActiveTool(if (textOn) PdfEditTool.None else PdfEditTool.Text) },
-                    backdrop = backdrop,
-                    tint = Color(0xFF00796B), surfaceColor = toolDim(textOn)
-                ) { BasicText(stringResource(R.string.anno_text_title), style = TextStyle(Color.White, 12.sp, FontWeight.Medium)) }
+                ToolChip(Icons.Rounded.TextFields, stringResource(R.string.viewer_tool_text), Color(0xFF00796B), textOn, backdrop) {
+                    onSetActiveTool(if (textOn) PdfEditTool.None else PdfEditTool.Text)
+                }
 
                 val noteOn = activeTool == PdfEditTool.Note
-                LiquidButton(
-                    onClick  = { onSetActiveTool(if (noteOn) PdfEditTool.None else PdfEditTool.Note) },
-                    backdrop = backdrop,
-                    tint = Color(0xFFEF6C00), surfaceColor = toolDim(noteOn)
-                ) { BasicText(stringResource(R.string.anno_note_title), style = TextStyle(Color.White, 12.sp, FontWeight.Medium)) }
+                ToolChip(Icons.AutoMirrored.Rounded.StickyNote2, stringResource(R.string.viewer_tool_note), Color(0xFFEF6C00), noteOn, backdrop) {
+                    onSetActiveTool(if (noteOn) PdfEditTool.None else PdfEditTool.Note)
+                }
 
+                // Material Icons has no eraser; the broom reads as "wipe away".
                 val eraseOn = activeTool == PdfEditTool.Eraser
-                LiquidButton(
-                    onClick  = { onSetActiveTool(if (eraseOn) PdfEditTool.None else PdfEditTool.Eraser) },
-                    backdrop = backdrop,
-                    tint = Color(0xFFC62828), surfaceColor = toolDim(eraseOn)
-                ) { BasicText(stringResource(R.string.viewer_eraser), style = TextStyle(Color.White, 12.sp, FontWeight.Medium)) }
-
-                LiquidButton(onClick = onShowSignaturePad, backdrop = backdrop, tint = Color(0xFF5E35B1), surfaceColor = toolDim(false)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Gesture, null, Modifier.size(14.dp), Color.White)
-                        BasicText(stringResource(R.string.viewer_sign), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                    }
+                ToolChip(Icons.Rounded.AutoFixNormal, stringResource(R.string.viewer_eraser), Color(0xFFC62828), eraseOn, backdrop) {
+                    onSetActiveTool(if (eraseOn) PdfEditTool.None else PdfEditTool.Eraser)
                 }
 
-                LiquidButton(
-                    onClick = onToggleFindBar,
-                    backdrop = backdrop,
-                    tint = Color(0xFF0277BD), surfaceColor = toolDim(showFindBar)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.Search, null, Modifier.size(14.dp), Color.White)
-                        BasicText(stringResource(R.string.viewer_find), style = TextStyle(Color.White, 12.sp, FontWeight.Medium))
-                    }
-                }
+                ToolChip(Icons.Rounded.Gesture, stringResource(R.string.viewer_sign), Color(0xFF5E35B1), false, backdrop, onShowSignaturePad)
 
                 // Undo used to live only inside the draw strip, so placing a text box, a note, an
                 // image or a signature left nothing to undo with. The draw strip has its own copy,
@@ -642,7 +626,7 @@ internal fun PdfViewerBottomToolbar(
                 if (canUndo && !drawingToolActive) {
                     LiquidButton(onClick = onUndo, backdrop = backdrop, surfaceColor = chip) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Rounded.Undo, null, Modifier.size(14.dp), fg)
+                            Icon(Icons.AutoMirrored.Rounded.Undo, null, Modifier.size(14.dp), fg)
                             BasicText(stringResource(R.string.viewer_undo), style = TextStyle(fg, 12.sp, FontWeight.Medium))
                         }
                     }
@@ -681,7 +665,8 @@ internal fun PdfViewerBottomToolbar(
                 } else {
                     LiquidButton(onClick = { onZoomStep(0.5f) }, backdrop = backdrop, surfaceColor = chip) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Rounded.ZoomIn, stringResource(R.string.viewer_zoom_in), Modifier.size(14.dp), fg)
+                            // Not ZoomIn: a magnifier here read as a second search button.
+                            Icon(Icons.Rounded.ZoomOutMap, stringResource(R.string.viewer_zoom_in), Modifier.size(14.dp), fg)
                             BasicText(stringResource(R.string.viewer_zoom), style = TextStyle(fg, 12.sp, FontWeight.Medium))
                         }
                     }
