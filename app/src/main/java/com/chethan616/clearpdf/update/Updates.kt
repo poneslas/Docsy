@@ -69,6 +69,11 @@ val UpdateState.newVersion: UpdateInfo?
  * (foss) does this: Google Play and F-Droid update apps themselves.
  */
 object Updates {
+    // The API first: raw.githubusercontent.com serves a CDN copy for up to 5 minutes and ignores
+    // both no-cache and a cache-busting query, so a check right after a release read the old
+    // version. The API caches for 60 s. It allows 60 requests an hour per IP, so when it refuses
+    // (a shared carrier IP), the raw file is the fallback.
+    private const val MANIFEST_API = "https://api.github.com/repos/poneslas/Docsy/contents/update.json?ref=main"
     private const val MANIFEST_URL = "https://raw.githubusercontent.com/poneslas/Docsy/main/update.json"
     private const val TRUSTED_PREFIX = "https://github.com/poneslas/Docsy/releases/download/"
     private const val PREFS = "docsy_updates"
@@ -113,14 +118,27 @@ object Updates {
 
     /** Blocking: reads update.json; a newer version, null when this is the latest. Throws when offline. */
     private fun fetch(context: Context): UpdateInfo? {
-        val connection = URL(MANIFEST_URL).openConnection() as HttpURLConnection
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 10_000
-        connection.setRequestProperty("Cache-Control", "no-cache")
-        val text = connection.inputStream.bufferedReader().use { it.readText() }
-        connection.disconnect()
+        val text = runCatching { read(MANIFEST_API, raw = true) }.getOrNull() ?: read(MANIFEST_URL, raw = false)
         prefs(context).edit().putLong("checkedAt", System.currentTimeMillis()).putString("latest", text).apply()
         return pending(context)
+    }
+
+    /** The manifest's text; [raw] asks the GitHub API for the file itself rather than its JSON description. */
+    private fun read(url: String, raw: Boolean): String {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        try {
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 10_000
+            connection.useCaches = false
+            connection.setRequestProperty("Cache-Control", "no-cache")
+            if (raw) connection.setRequestProperty("Accept", "application/vnd.github.raw+json")
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) throw java.io.IOException("HTTP ${connection.responseCode}")
+            val text = connection.inputStream.bufferedReader().use { it.readText() }
+            JSONObject(text) // a rate-limit page or a proxy's HTML is not a manifest
+            return text
+        } finally {
+            connection.disconnect()
+        }
     }
 
     /** Busy with an update the user started: a check must not replace its state. */
