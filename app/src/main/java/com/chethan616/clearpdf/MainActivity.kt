@@ -19,11 +19,22 @@ open class MainActivity : ComponentActivity() {
     /** True for [DocumentActivity]: a document opened from another app, in its own window. */
     protected open val isDocumentWindow: Boolean = false
 
+    /** The context the system made for this activity, before the locale wrapper replaced it. */
+    private var systemBase: android.content.Context? = null
+
     override fun attachBaseContext(newBase: android.content.Context) {
+        systemBase = newBase
         val savedLang = com.chethan616.clearpdf.data.repository.OnboardingManager.getSelectedLocale(newBase)
         val context = com.chethan616.clearpdf.ui.utils.LocaleHelper.getLocalizedContext(newBase, savedLang)
         super.attachBaseContext(context)
     }
+
+    // PrintManager prints only for the activity it belongs to. One taken from the localized base
+    // belongs to that configuration context instead and throws "Can print only from an activity",
+    // so Print did nothing anywhere; the system's own base context is tied to this activity.
+    override fun getSystemService(name: String): Any? =
+        if (name == PRINT_SERVICE) systemBase?.getSystemService(name) ?: super.getSystemService(name)
+        else super.getSystemService(name)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val savedLang = com.chethan616.clearpdf.data.repository.OnboardingManager.getSelectedLocale(this)
