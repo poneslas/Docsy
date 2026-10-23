@@ -6,6 +6,13 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +22,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,21 +37,27 @@ import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Print
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -63,11 +77,15 @@ import com.chethan616.clearpdf.ui.components.rememberAdaptiveInk
 import com.chethan616.clearpdf.ui.components.rememberScreenBackdrop
 import com.chethan616.clearpdf.ui.theme.LiquidGlassColors
 import com.chethan616.clearpdf.ui.theme.LocalIsDarkMode
+import com.chethan616.clearpdf.ui.utils.rememberUISensor
 import com.chethan616.clearpdf.ui.viewmodel.MarkdownViewerViewModel
 import com.chethan616.clearpdf.utils.PdfPrint
 import com.chethan616.clearpdf.utils.markdown.MdBlock
 import com.kyant.backdrop.backdrops.LayerBackdrop
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Read-only Markdown viewer: the file drawn natively (so the glass header and buttons refract the
@@ -121,9 +139,40 @@ private fun MarkdownViewerContent(
     val state = viewModel.state
     val doc = state.doc
     val listState = rememberLazyListState()
+    val density = LocalDensity.current
     val screenBackdrop = rememberScreenBackdrop(backdrop)
     val imageLabel = stringResource(R.string.md_image)
     val linkUnavailable = stringResource(R.string.md_link_unavailable)
+
+    val uiSensor = rememberUISensor()
+    var showSearch by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var currentMatch by remember { mutableIntStateOf(0) }
+    val searchFocus = remember { FocusRequester() }
+    val matches by produceState(emptyList<FindHit>(), doc, searchQuery) {
+        val q = searchQuery
+        val d = doc
+        if (q.isBlank() || d == null) { value = emptyList(); return@produceState }
+        delay(160)
+        value = withContext(Dispatchers.Default) { findInMarkdown(d.blocks, q) }
+    }
+    val find = remember(matches, currentMatch) {
+        val byKey = java.util.IdentityHashMap<Any, MutableList<IntRange>>()
+        matches.forEach { byKey.getOrPut(it.key) { ArrayList() }.add(it.range) }
+        @Suppress("UNCHECKED_CAST")
+        MdFind(byKey as java.util.IdentityHashMap<Any, List<IntRange>>, matches.getOrNull(currentMatch))
+    }
+    LaunchedEffect(matches) { currentMatch = 0 }
+    LaunchedEffect(find.current) {
+        // The block holding the current match, near the top of the page.
+        find.current?.let { listState.animateScrollToItem(it.item, -with(density) { 140.dp.roundToPx() }) }
+    }
+    fun goToMatch(delta: Int) {
+        if (matches.isEmpty()) return
+        currentMatch = ((currentMatch + delta) % matches.size + matches.size) % matches.size
+    }
+    fun closeSearch() { showSearch = false; searchQuery = "" }
+    BackHandler(enabled = showSearch) { closeSearch() }
 
     val anchors = remember(doc) {
         doc?.blocks?.withIndex()?.mapNotNull { (i, b) -> (b as? MdBlock.Heading)?.let { it.anchor to i } }?.toMap().orEmpty()
@@ -164,6 +213,7 @@ private fun MarkdownViewerContent(
             header = { headerBackdrop ->
                 val backInk = rememberAdaptiveInk(text)
                 val titleInk = rememberAdaptiveInk(text)
+                val findInk = rememberAdaptiveInk(text)
                 val paperInk = rememberAdaptiveInk(text)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -186,6 +236,9 @@ private fun MarkdownViewerContent(
                             contentColor = titleInk.color
                         )
                     }
+                    LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                        Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
+                    }
                     LiquidIconButton(onClick = onTogglePaper, backdrop = headerBackdrop, modifier = paperInk.modifier) {
                         Icon(
                             if (paperDark) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
@@ -205,6 +258,7 @@ private fun MarkdownViewerContent(
                 }
                 else -> {
                     val dir = LocalLayoutDirection.current
+                    CompositionLocalProvider(LocalMdFind provides find.takeIf { matches.isNotEmpty() }) {
                     SelectionContainer(Modifier.fillMaxSize().background(colors.paper)) {
                         LazyColumn(
                             state = listState,
@@ -224,12 +278,13 @@ private fun MarkdownViewerContent(
                             }
                         }
                     }
+                    }
                 }
             }
         }
 
         // ── reading chrome: print, PDF layout and share, as in the Word viewer ──
-        if (doc != null) {
+        if (doc != null && !showSearch) {
             val printInk = rememberAdaptiveInk(text)
             val pdfInk = rememberAdaptiveInk(text)
             val shareInk = rememberAdaptiveInk(text)
@@ -251,6 +306,30 @@ private fun MarkdownViewerContent(
                     Icon(Icons.Rounded.IosShare, stringResource(R.string.viewer_share_document), Modifier.size(20.dp), shareInk.color)
                 }
             }
+        }
+
+        // Find: the same glass bar as the other viewers'.
+        AnimatedVisibility(
+            visible = showSearch,
+            enter = fadeIn(tween(180)) + slideInVertically { it },
+            exit = fadeOut(tween(140)) + slideOutVertically { it },
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().imePadding().padding(horizontal = 12.dp, vertical = 12.dp)
+        ) {
+            PdfSearchBar(
+                query = searchQuery,
+                matchCount = matches.size,
+                currentMatchIndex = currentMatch,
+                focusRequester = searchFocus,
+                backdrop = screenBackdrop.content,
+                uiSensor = uiSensor,
+                fg = text,
+                fgSoft = sub,
+                surface = Color.Transparent,
+                onQueryChange = { searchQuery = it },
+                onPrevMatch = { goToMatch(-1) },
+                onNextMatch = { goToMatch(1) },
+                onClose = { closeSearch() }
+            )
         }
     }
 }

@@ -5,6 +5,13 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,19 +46,24 @@ import androidx.compose.material.icons.rounded.IosShare
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Print
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -80,6 +93,7 @@ import com.chethan616.clearpdf.ui.components.rememberScreenBackdrop
 import com.chethan616.clearpdf.ui.components.viewerGlass
 import com.chethan616.clearpdf.ui.theme.LiquidGlassColors
 import com.chethan616.clearpdf.ui.theme.LocalIsDarkMode
+import com.chethan616.clearpdf.ui.utils.rememberUISensor
 import com.chethan616.clearpdf.ui.viewmodel.TextViewerViewModel
 import com.chethan616.clearpdf.utils.PdfPrint
 import com.chethan616.clearpdf.utils.text.Grammar
@@ -87,6 +101,10 @@ import com.chethan616.clearpdf.utils.text.Grammars
 import com.chethan616.clearpdf.utils.text.LineState
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.shapes.Capsule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 
 /**
@@ -146,6 +164,34 @@ private fun TextViewerContent(
     val screenBackdrop = rememberScreenBackdrop(backdrop)
     var wrap by rememberSaveable { mutableStateOf(true) }
     var showGrammar by remember { mutableStateOf(false) }
+    val uiSensor = rememberUISensor()
+
+    // Find, off the main thread and debounced, as in the Word viewer.
+    var showSearch by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var currentMatch by remember { mutableIntStateOf(0) }
+    val searchFocus = remember { FocusRequester() }
+    val matches by produceState(emptyList<FindHit>(), lines, searchQuery) {
+        val q = searchQuery
+        val l = lines
+        if (q.isBlank() || l == null) { value = emptyList(); return@produceState }
+        delay(160)
+        value = withContext(Dispatchers.Default) {
+            val out = ArrayList<FindHit>()
+            for (i in l.text.indices) {
+                findIn(l.text[i], q, out, MaxFindHits) { FindHit(i, i, it) }
+                if (out.size >= MaxFindHits) break
+            }
+            out
+        }
+    }
+    LaunchedEffect(matches) { currentMatch = 0 }
+    fun goToMatch(delta: Int) {
+        if (matches.isEmpty()) return
+        currentMatch = ((currentMatch + delta) % matches.size + matches.size) % matches.size
+    }
+    fun closeSearch() { showSearch = false; searchQuery = "" }
+    BackHandler(enabled = showSearch) { closeSearch() }
 
     fun openAsPdf() {
         viewModel.exportToPdf(context) { pdf ->
@@ -169,6 +215,7 @@ private fun TextViewerContent(
             header = { headerBackdrop ->
                 val backInk = rememberAdaptiveInk(text)
                 val titleInk = rememberAdaptiveInk(text)
+                val findInk = rememberAdaptiveInk(text)
                 val wrapInk = rememberAdaptiveInk(text)
                 val paperInk = rememberAdaptiveInk(text)
                 Row(
@@ -191,6 +238,9 @@ private fun TextViewerContent(
                             surfaceColor = Color.Transparent,
                             contentColor = titleInk.color
                         )
+                    }
+                    LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                        Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
                     }
                     LiquidIconButton(
                         onClick = { wrap = !wrap },
@@ -217,12 +267,15 @@ private fun TextViewerContent(
                 state.failed || lines == null -> Box(Modifier.fillMaxSize().background(paper).padding(24.dp), contentAlignment = Alignment.Center) {
                     BasicText(stringResource(R.string.md_read_failed), style = TextStyle(sub, 15.sp, textAlign = TextAlign.Center))
                 }
-                else -> TextLines(lines, state.grammar, wrap, paperDark, paper, text, sub, contentPadding, state.truncated)
+                else -> TextLines(
+                    lines, state.grammar, wrap, paperDark, paper, text, sub, contentPadding, state.truncated,
+                    matches, matches.getOrNull(currentMatch)
+                )
             }
         }
 
         // ── reading chrome: highlighting + line count (left); format, print, PDF, share (right) ──
-        if (lines != null) {
+        if (lines != null && !showSearch) {
             val modeInk = rememberAdaptiveInk(text)
             val formatInk = rememberAdaptiveInk(text)
             val printInk = rememberAdaptiveInk(text)
@@ -273,6 +326,29 @@ private fun TextViewerContent(
             }
         }
 
+        AnimatedVisibility(
+            visible = showSearch,
+            enter = fadeIn(tween(180)) + slideInVertically { it },
+            exit = fadeOut(tween(140)) + slideOutVertically { it },
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().imePadding().padding(horizontal = 12.dp, vertical = 12.dp)
+        ) {
+            PdfSearchBar(
+                query = searchQuery,
+                matchCount = matches.size,
+                currentMatchIndex = currentMatch,
+                focusRequester = searchFocus,
+                backdrop = screenBackdrop.content,
+                uiSensor = uiSensor,
+                fg = text,
+                fgSoft = sub,
+                surface = Color.Transparent,
+                onQueryChange = { searchQuery = it },
+                onPrevMatch = { goToMatch(-1) },
+                onNextMatch = { goToMatch(1) },
+                onClose = { closeSearch() }
+            )
+        }
+
         GrammarDialog(
             visible = showGrammar,
             current = state.grammar,
@@ -296,7 +372,9 @@ private fun TextLines(
     ink: Color,
     sub: Color,
     contentPadding: PaddingValues,
-    truncated: Boolean
+    truncated: Boolean,
+    matches: List<FindHit>,
+    current: FindHit?
 ) {
     val dir = LocalLayoutDirection.current
     val density = LocalDensity.current
@@ -311,6 +389,18 @@ private fun TextLines(
     val padStart = contentPadding.calculateStartPadding(dir) + 10.dp
     val padEnd = contentPadding.calculateEndPadding(dir) + 16.dp
     val pageWidth = with(density) { (charPx * (lines.longest + 1)).toDp() } + gutter + padStart + padEnd
+    val hScroll = rememberScrollState()
+    val hitsByLine = remember(matches) { matches.groupBy({ it.item }, { it.range }) }
+
+    // The current match comes into view: its line near the top, and unwrapped, its column too.
+    LaunchedEffect(current) {
+        val hit = current ?: return@LaunchedEffect
+        launch { listState.animateScrollToItem(hit.item, -with(density) { 140.dp.roundToPx() }) }
+        if (!wrap) {
+            val x = with(density) { (padStart + gutter).toPx() } + charPx * hit.range.first
+            hScroll.animateScrollTo((x - hScroll.viewportSize / 3f).toInt().coerceAtLeast(0))
+        }
+    }
 
     val list: @Composable (Modifier) -> Unit = { modifier ->
         LazyColumn(
@@ -326,7 +416,11 @@ private fun TextLines(
             items(lines.text.size) { i ->
                 val line = lines.text[i]
                 val lineState = lines.states?.getOrNull(i) ?: LineState.Initial
-                val annotated = remember(line, grammar, dark, lineState) { highlightLine(line, grammar, lineState, dark) }
+                val hits = hitsByLine[i]
+                val cur = current?.takeIf { it.item == i }?.range
+                val annotated = remember(line, grammar, dark, lineState, hits, cur) {
+                    highlightLine(line, grammar, lineState, dark).withHits(hits, cur, dark)
+                }
                 Row(Modifier.fillMaxWidth()) {
                     BasicText(
                         if (lines.numbers[i] > 0) lines.numbers[i].toString() else "",
@@ -348,7 +442,7 @@ private fun TextLines(
 
     SelectionContainer(Modifier.fillMaxSize().background(paper)) {
         if (wrap) list(Modifier.fillMaxSize())
-        else Box(Modifier.fillMaxSize().horizontalScroll(rememberScrollState())) {
+        else Box(Modifier.fillMaxSize().horizontalScroll(hScroll)) {
             list(Modifier.width(pageWidth).fillMaxHeight())
         }
     }

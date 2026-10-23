@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,6 +86,48 @@ internal data class MdColors(
     }
 }
 
+/**
+ * Find in a Markdown page: the matches by the text they are in. Keyed by identity, not equality:
+ * two paragraphs that read the same are still two places.
+ */
+internal class MdFind(val byKey: java.util.IdentityHashMap<Any, List<IntRange>>, val current: FindHit?) {
+    fun hits(key: Any) = byKey[key]
+    fun currentIn(key: Any) = current?.takeIf { it.key === key }?.range
+}
+
+internal val LocalMdFind = staticCompositionLocalOf<MdFind?> { null }
+
+/** Every match of [q] in the document, in reading order; [FindHit.item] is the top-level block. */
+internal fun findInMarkdown(blocks: List<MdBlock>, q: String): List<FindHit> {
+    val out = ArrayList<FindHit>()
+    fun walk(b: MdBlock, top: Int) {
+        if (out.size >= MaxFindHits) return
+        when (b) {
+            is MdBlock.Heading -> findIn(b.text.text, q, out, MaxFindHits) { FindHit(b.text, top, it) }
+            is MdBlock.Paragraph -> findIn(b.text.text, q, out, MaxFindHits) { FindHit(b.text, top, it) }
+            is MdBlock.Code -> findIn(b.code, q, out, MaxFindHits) { FindHit(b, top, it) }
+            is MdBlock.FrontMatter -> findIn(b.raw, q, out, MaxFindHits) { FindHit(b, top, it) }
+            is MdBlock.Html -> findIn(b.raw, q, out, MaxFindHits) { FindHit(b, top, it) }
+            is MdBlock.Quote -> b.blocks.forEach { walk(it, top) }
+            is MdBlock.ListBlock -> b.items.forEach { item -> item.blocks.forEach { walk(it, top) } }
+            is MdBlock.Table -> (listOf(b.header) + b.rows).forEach { row ->
+                row.forEach { cell -> findIn(cell.text, q, out, MaxFindHits) { FindHit(cell, top, it) } }
+            }
+            MdBlock.Rule -> Unit
+        }
+    }
+    blocks.forEachIndexed { i, b -> walk(b, i) }
+    return out
+}
+
+/** [annotated] with this page's find matches on it. */
+@Composable
+private fun found(t: MdText, c: MdColors, imageLabel: String, onLink: (String) -> Unit): AnnotatedString {
+    val find = LocalMdFind.current
+    val base = annotated(t, c, imageLabel, onLink)
+    return if (find == null) base else base.withHits(find.hits(t), find.currentIn(t), c.paper.luminance() < 0.5f)
+}
+
 private val BodySize = 16.sp
 private val BodyLine = 25.sp
 private val Mono = FontFamily.Monospace
@@ -97,7 +140,7 @@ internal fun MdBlockView(block: MdBlock, c: MdColors, imageLabel: String, onLink
             val size = when (block.level) { 1 -> 26.sp; 2 -> 22.sp; 3 -> 19.sp; 4 -> 17.sp; 5 -> 15.sp; else -> 14.sp }
             Column(Modifier.fillMaxWidth().padding(top = if (block.level <= 2) 10.dp else 4.dp)) {
                 BasicText(
-                    annotated(block.text, c, imageLabel, onLink),
+                    found(block.text, c, imageLabel, onLink),
                     style = TextStyle(
                         if (block.level == 6) c.sub else c.ink, size,
                         fontWeight = if (block.level <= 3) FontWeight.Bold else FontWeight.SemiBold,
@@ -108,9 +151,9 @@ internal fun MdBlockView(block: MdBlock, c: MdColors, imageLabel: String, onLink
             }
         }
         is MdBlock.Paragraph -> Paragraph(block.text, c, imageLabel, onLink)
-        is MdBlock.Code -> CodeBox(block.code, block.language, c)
-        is MdBlock.FrontMatter -> CodeBox(block.raw, "yaml", c)
-        is MdBlock.Html -> CodeBox(block.raw, "html", c)
+        is MdBlock.Code -> CodeBox(block, block.code, block.language, c)
+        is MdBlock.FrontMatter -> CodeBox(block, block.raw, "yaml", c)
+        is MdBlock.Html -> CodeBox(block, block.raw, "html", c)
         is MdBlock.Rule -> Box(Modifier.padding(vertical = 6.dp).fillMaxWidth().height(2.dp).background(c.border))
         is MdBlock.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(3.dp).fillMaxHeight().clip(RoundedCornerShape(2.dp)).background(c.border))
@@ -126,14 +169,16 @@ internal fun MdBlockView(block: MdBlock, c: MdColors, imageLabel: String, onLink
 
 @Composable
 private fun Paragraph(text: MdText, c: MdColors, imageLabel: String, onLink: (String) -> Unit) {
-    BasicText(annotated(text, c, imageLabel, onLink), style = TextStyle(c.ink, BodySize, lineHeight = BodyLine))
+    BasicText(found(text, c, imageLabel, onLink), style = TextStyle(c.ink, BodySize, lineHeight = BodyLine))
 }
 
 @Composable
-private fun CodeBox(code: String, language: String?, c: MdColors) {
+private fun CodeBox(block: MdBlock, code: String, language: String?, c: MdColors) {
     val dark = c.paper.luminance() < 0.5f
     // Same rules and colours as the text viewer, so a ```json block reads like a .json file.
-    val text = remember(code, language, dark) { highlightBlock(code, Grammars.forLanguage(language), dark) }
+    val highlighted = remember(code, language, dark) { highlightBlock(code, Grammars.forLanguage(language), dark) }
+    val find = LocalMdFind.current
+    val text = if (find == null) highlighted else highlighted.withHits(find.hits(block), find.currentIn(block), dark)
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.codeBg).padding(vertical = 10.dp)
     ) {
@@ -227,7 +272,7 @@ private fun TableGrid(t: MdBlock.Table, c: MdColors, imageLabel: String, onLink:
                 row.forEachIndexed { i, cell ->
                     val align = when (t.align[i]) { MdAlign.Start -> TextAlign.Start; MdAlign.Center -> TextAlign.Center; MdAlign.End -> TextAlign.End }
                     BasicText(
-                        annotated(cell, c, imageLabel, onLink),
+                        found(cell, c, imageLabel, onLink),
                         Modifier.padding(horizontal = CellPadH, vertical = CellPadV),
                         style = TextStyle(
                             c.ink, 14.sp, lineHeight = 20.sp, textAlign = align,
