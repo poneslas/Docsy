@@ -14,4 +14,8 @@
     <string name="restart_title">Restart Docsy?</string>
     <string name="restart_body">This language reads in the other direction. Restart Docsy so every screen switches over.</string>
     <string name="about_fork_of">Fork of ClearPDF by Chethan616 ↗</string>
+    <!-- Главная: про документы вообще, не только PDF. Заголовок — в одну строку. -->
+    <string name="home_tagline">Documents, simple and elegant.</string>
+    <string name="home_open_pdf">Open</string>
+    <string name="home_no_recents_subtitle">Open a document to get started</string>
 </resources>

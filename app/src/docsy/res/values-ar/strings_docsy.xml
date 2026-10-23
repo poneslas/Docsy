@@ -14,4 +14,8 @@
     <string name="restart_title">إعادة تشغيل Docsy؟</string>
     <string name="restart_body">تُقرأ هذه اللغة في الاتجاه الآخر. أعد تشغيل Docsy لتتبدّل كل الشاشات.</string>
     <string name="about_fork_of">نسخة مشتقة من ClearPDF بواسطة Chethan616 ↗</string>
+    <!-- Главная: про документы вообще, не только PDF. Заголовок — в одну строку. -->
+    <string name="home_tagline">المستندات ببساطة وأناقة.</string>
+    <string name="home_open_pdf">فتح</string>
+    <string name="home_no_recents_subtitle">افتح مستندًا للبدء</string>
 </resources>

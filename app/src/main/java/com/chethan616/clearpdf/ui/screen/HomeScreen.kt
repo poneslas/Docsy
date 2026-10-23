@@ -59,6 +59,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.Apps
@@ -723,7 +724,10 @@ private fun HomeHeroCard(
                 fontWeight = FontWeight.Bold,
                 fontFamily = SourGummyFontFamily,
                 textAlign = TextAlign.Center
-            )
+            ),
+            // One line on every phone and in every language: a narrow screen gets a smaller size.
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 20.sp)
         )
         Spacer(Modifier.height(6.dp))
         BasicText(
@@ -835,7 +839,9 @@ private fun HomeLaunchpad(
                         fontWeight = FontWeight.Bold,
                         fontFamily = SourGummyFontFamily,
                         textAlign = TextAlign.Center
-                    )
+                    ),
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = 25.sp)
                 )
                 Spacer(Modifier.height(8.dp))
                 BasicText(

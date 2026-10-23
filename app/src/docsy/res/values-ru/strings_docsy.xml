@@ -14,4 +14,8 @@
     <string name="restart_title">Перезапустить Доки?</string>
     <string name="restart_body">Этот язык читается в другую сторону. Перезапустите Доки, чтобы все экраны перестроились.</string>
     <string name="about_fork_of">Форк ClearPDF от Chethan616 ↗</string>
+    <!-- Главная: про документы вообще, не только PDF. Заголовок — в одну строку. -->
+    <string name="home_tagline">Документы — просто и элегантно.</string>
+    <string name="home_open_pdf">Открыть</string>
+    <string name="home_no_recents_subtitle">Откройте документ, чтобы начать</string>
 </resources>
