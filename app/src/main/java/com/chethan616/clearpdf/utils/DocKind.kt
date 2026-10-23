@@ -6,7 +6,7 @@ package com.chethan616.clearpdf.utils
  * preserved (e.g. "budget.xlsx") — so the extension is a reliable way to recover the kind and show
  * the right editor tools / route to the right viewer.
  */
-enum class DocKind { Pdf, Word, Excel, Ppt, Image, Other }
+enum class DocKind { Pdf, Word, Excel, Ppt, Image, Markdown, Other }
 
 /** Classify a file by its name/extension. Null/unknown → [DocKind.Other]. */
 fun docKindOf(fileName: String?): DocKind {
@@ -18,6 +18,7 @@ fun docKindOf(fileName: String?): DocKind {
         n.endsWith(".pptx") || n.endsWith(".ppt") -> DocKind.Ppt
         n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") ||
             n.endsWith(".webp") || n.endsWith(".bmp") || n.endsWith(".heic") -> DocKind.Image
+        n.endsWith(".md") || n.endsWith(".markdown") || n.endsWith(".mdown") || n.endsWith(".mkd") -> DocKind.Markdown
         else -> DocKind.Other
     }
 }

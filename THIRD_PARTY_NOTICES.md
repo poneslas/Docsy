@@ -9,6 +9,13 @@ ClearPDF uses open-source components and keeps their notices with the project. R
 - Use: PDF parsing, editing, merging, splitting, and password removal.
 - Notice practice: keep the Apache 2.0 license and upstream attribution available with redistributed builds. Do not imply that the Apache Software Foundation endorses ClearPDF.
 
+## JetBrains Markdown
+
+- Artifact: `org.jetbrains:markdown-jvm:0.7.18` (https://github.com/JetBrains/markdown), Copyright JetBrains s.r.o.
+- License: Apache License 2.0
+- Use: parsing Markdown files (GitHub flavour: tables, task lists, strikethrough, autolinks) for the read-only Markdown viewer. Only the syntax tree is used; the viewer draws the document natively and lays out its print PDF itself. Raw HTML in a file is shown as text, never interpreted.
+- Notice practice: keep the Apache 2.0 license and upstream attribution available with redistributed builds.
+
 ## Carlito font
 
 - Files: `app/src/main/res/font/carlito_regular.ttf`, `carlito_bold.ttf`

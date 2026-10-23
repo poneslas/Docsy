@@ -73,7 +73,7 @@ internal object DocxWebRenderer {
      * access/verification error here, at a point where the only consequence is choosing the other
      * route — rather than half-way through writing a file.
      */
-    private val printRouteAvailable: Boolean by lazy {
+    internal val printRouteAvailable: Boolean by lazy {
         runCatching {
             object : OpenLayoutResultCallback() {
                 override fun onLayoutFinished(info: PrintDocumentInfo?, changed: Boolean) = Unit
@@ -85,8 +85,8 @@ internal object DocxWebRenderer {
     }
 
     /** A4 in mils (thousandths of an inch), for a document that declares no page size. */
-    private const val A4WidthMils = 8268
-    private const val A4HeightMils = 11693
+    internal const val A4WidthMils = 8268
+    internal const val A4HeightMils = 11693
 
     /**
      * @return true only if [outFile] now holds a non-empty PDF. False means "use the fallback" —
@@ -190,7 +190,7 @@ internal object DocxWebRenderer {
      * Drives the adapter's `onLayout` → `onWrite` → `onFinish` sequence by hand, which is what the
      * system print dialog would otherwise do for us. Main thread only.
      */
-    private fun printToPdf(
+    internal fun printToPdf(
         view: WebView,
         widthMils: Int,
         heightMils: Int,
@@ -256,7 +256,7 @@ internal object DocxWebRenderer {
      * notion of where a break belongs, so a band boundary can fall through a line of text. That is
      * why it is second choice rather than the only implementation.
      */
-    private fun sliceToPdf(view: WebView, widthMils: Int, heightMils: Int, outFile: File): Boolean {
+    internal fun sliceToPdf(view: WebView, widthMils: Int, heightMils: Int, outFile: File): Boolean {
         val pageWidth = (widthMils.toLong() * CssDpi / 1000L).toInt().coerceIn(80, 5000)
         val pageHeight = (heightMils.toLong() * CssDpi / 1000L).toInt().coerceIn(80, 5000)
 

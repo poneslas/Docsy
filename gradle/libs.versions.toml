@@ -26,6 +26,7 @@ mlkitSubjectSegmentation = "16.0.0-beta1"
 playFeatureDelivery = "2.1.0"
 work = "2.10.1"
 xz = "1.10"
+jetbrainsMarkdown = "0.7.18"
 
 [libraries]
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
@@ -66,6 +67,9 @@ tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract
 play-feature-delivery-ktx = { group = "com.google.android.play", name = "feature-delivery-ktx", version.ref = "playFeatureDelivery" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 xz = { group = "org.tukaani", name = "xz", version.ref = "xz" }
+
+# Markdown viewer (see THIRD_PARTY_NOTICES.md)
+jetbrains-markdown = { group = "org.jetbrains", name = "markdown-jvm", version.ref = "jetbrainsMarkdown" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

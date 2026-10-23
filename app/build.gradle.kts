@@ -220,6 +220,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.acccompanist.permissions)
     implementation("androidx.documentfile:documentfile:1.0.1")
+    // Markdown viewer: JetBrains' GFM parser (Apache-2.0, pure Kotlin, ~0.6 MB before R8, no
+    // desugaring needed on minSdk 23). Only the syntax tree is used; drawing is the app's own.
+    implementation(libs.jetbrains.markdown)
 
     // Image editor: GPUImage (upstream 2.1.0, ~0.2 MB; the T8RIN 8.x fork needs compileSdk 37
     // + desugaring and drags in androidx.core 1.19) for GL adjustments/filters, EXIF read/strip,

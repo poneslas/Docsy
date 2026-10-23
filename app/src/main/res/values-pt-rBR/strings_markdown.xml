@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Markdown viewer. -->
+<resources>
+    <string name="md_image">imagem</string>
+    <string name="md_link_unavailable">Este link aponta para fora do documento e não pode ser aberto aqui</string>
+    <string name="md_read_failed">Não foi possível ler este arquivo</string>
+    <string name="md_empty">Este arquivo está vazio</string>
+</resources>

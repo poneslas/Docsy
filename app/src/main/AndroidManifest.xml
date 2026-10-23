@@ -146,6 +146,16 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
+            <!-- Open Markdown files (read-only viewer) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="text/markdown" />
+                <data android:mimeType="text/x-markdown" />
+            </intent-filter>
+
             <!-- Open image files -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

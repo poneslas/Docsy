@@ -110,6 +110,7 @@ open class MainActivity : ComponentActivity() {
             when (kind) {
                 com.chethan616.clearpdf.utils.DocKind.Excel -> "spreadsheet"
                 com.chethan616.clearpdf.utils.DocKind.Image -> "image_editor"
+                com.chethan616.clearpdf.utils.DocKind.Markdown -> "markdown_viewer"
                 com.chethan616.clearpdf.utils.DocKind.Word ->
                     if (incomingName?.lowercase()?.trim()?.endsWith(".docx") == true) "docx_editor" else "pdf_viewer"
                 else -> "pdf_viewer"
@@ -152,7 +153,8 @@ open class MainActivity : ComponentActivity() {
         val lower = uriString.lowercase()
         val supportedExtension = listOf(
             ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".csv", ".txt", ".rtf",
-            ".odt", ".ods", ".odp", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".heic"
+            ".odt", ".ods", ".odp", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".heic",
+            ".md", ".markdown"
         ).any(lower::contains)
         return mimeType == null ||
             mimeType == "application/pdf" ||
