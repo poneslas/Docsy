@@ -443,7 +443,10 @@ private fun SpreadsheetViewerContent(
                     Toast.makeText(context, R.string.sheet_saved, Toast.LENGTH_SHORT).show()
                     if (exitAfterSave) onBack()
                 }
-                else -> Toast.makeText(context, R.string.sheet_save_failed, Toast.LENGTH_SHORT).show()
+                else -> {
+                    exitAfterSave = false
+                    Toast.makeText(context, R.string.sheet_save_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         } else exitAfterSave = false
     }
@@ -458,7 +461,10 @@ private fun SpreadsheetViewerContent(
                     if (exitAfterSave) onBack()
                 }
                 is SpreadsheetViewModel.SaveResult.NeedsSaveAs -> saveAsLauncher.launch(viewModel.suggestedSaveAsName())
-                is SpreadsheetViewModel.SaveResult.Failed -> Toast.makeText(context, R.string.sheet_save_failed, Toast.LENGTH_SHORT).show()
+                is SpreadsheetViewModel.SaveResult.Failed -> {
+                    exitAfterSave = false
+                    Toast.makeText(context, R.string.sheet_save_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

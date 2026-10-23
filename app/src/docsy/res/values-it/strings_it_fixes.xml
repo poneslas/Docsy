@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Docsy: corrections to upstream Italian strings. -->
+<resources>
+    <string name="viewer_clear">Cancella</string>
+</resources>

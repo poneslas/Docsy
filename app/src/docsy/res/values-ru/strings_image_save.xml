@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Docsy: image editor "Save to gallery" result. -->
+<resources>
+    <string name="ie_saved_to_pictures">Сохранено в Картинки/Docsy</string>
+    <string name="ie_save_image_failed">Не удалось сохранить изображение</string>
+</resources>

@@ -737,7 +737,10 @@ private fun DocxEditorContent(
             if (res is DocxEditorViewModel.SaveResult.Saved) {
                 Toast.makeText(context, R.string.docx_saved, Toast.LENGTH_SHORT).show()
                 if (exitAfterSave) onBack()
-            } else Toast.makeText(context, R.string.docx_save_failed, Toast.LENGTH_SHORT).show()
+            } else {
+                exitAfterSave = false
+                Toast.makeText(context, R.string.docx_save_failed, Toast.LENGTH_SHORT).show()
+            }
         } else exitAfterSave = false
     }
     fun save(asCopy: Boolean) {
@@ -750,7 +753,10 @@ private fun DocxEditorContent(
                     if (exitAfterSave) onBack()
                 }
                 is DocxEditorViewModel.SaveResult.NeedsSaveAs -> saveAsLauncher.launch(viewModel.suggestedSaveAsName())
-                is DocxEditorViewModel.SaveResult.Failed -> Toast.makeText(context, R.string.docx_save_failed, Toast.LENGTH_SHORT).show()
+                is DocxEditorViewModel.SaveResult.Failed -> {
+                    exitAfterSave = false
+                    Toast.makeText(context, R.string.docx_save_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -543,7 +543,10 @@ class ImageEditorViewModel(app: Application) : AndroidViewModel(app) {
     fun saveToGallery(onSaved: (() -> Unit)? = null) = export { file ->
         val uri = withContext(Dispatchers.IO) { ImageIo.publishToGallery(context, file, _state.value.export.format) }
         if (uri != null && onSaved != null) withContext(Dispatchers.Main) { onSaved() }
-        if (uri != null) "Saved to Pictures/Docsy" else "Couldn't save image"
+        context.getString(
+            if (uri != null) com.chethan616.clearpdf.R.string.ie_saved_to_pictures
+            else com.chethan616.clearpdf.R.string.ie_save_image_failed
+        )
     }
 
     fun share(onShare: (Uri, String) -> Unit) = export { file ->

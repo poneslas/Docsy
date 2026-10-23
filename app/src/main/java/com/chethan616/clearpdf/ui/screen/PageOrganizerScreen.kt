@@ -101,8 +101,15 @@ fun PageOrganizerScreen(
     var showSaveDialog by remember { mutableStateOf(false) }
     var confirmExit by remember { mutableStateOf(false) }
     var exitAfterSave by remember { mutableStateOf(false) }
-    val requestBack = { if (state.dirty && !state.isSaving) confirmExit = true else onBack() }
-    androidx.activity.compose.BackHandler(enabled = state.dirty && !confirmExit && !showSaveDialog) { requestBack() }
+    // While a save is running, back waits for its result instead of leaving silently.
+    val requestBack = {
+        when {
+            state.isSaving -> Unit
+            state.dirty -> confirmExit = true
+            else -> onBack()
+        }
+    }
+    androidx.activity.compose.BackHandler(enabled = (state.dirty || state.isSaving) && !confirmExit && !showSaveDialog) { requestBack() }
     val screenBackdrop = rememberScreenBackdrop(backdrop)
 
     var isVisible by remember { mutableStateOf(false) }
