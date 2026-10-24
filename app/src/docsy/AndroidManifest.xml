@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Доки: установка своего обновления, скачанного из релизов на GitHub (см. update/Updates.kt). -->
+<!-- Доки: установка своего обновления, скачанного из релизов на GitHub (см. update/Updates.kt).
+     Только для foss: подключается к fossDebug и fossRelease в конце app/build.gradle.kts. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

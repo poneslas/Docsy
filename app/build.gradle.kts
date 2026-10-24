@@ -255,5 +255,15 @@ android.buildFeatures.buildConfig = true
 android.productFlavors.all {
     buildConfigField("boolean", "SELF_UPDATE", if (name == "foss") "true" else "false")
 }
-android.sourceSets.getByName("debug").manifest.srcFile("src/docsy/AndroidManifest.xml")
-android.sourceSets.getByName("release").manifest.srcFile("src/docsy/AndroidManifest.xml")
+// Право ставить скачанное обновление нужно только сборке с GitHub: Google Play его не пропустит,
+// F-Droid отметит как антифичу. У флейвора foss уже есть свой манифест от ClearPDF, поэтому наш
+// подключаем к его вариантам fossDebug и fossRelease.
+android.sourceSets.maybeCreate("fossDebug").manifest.srcFile("src/docsy/AndroidManifest.xml")
+android.sourceSets.maybeCreate("fossRelease").manifest.srcFile("src/docsy/AndroidManifest.xml")
+
+// F-Droid: versionCode каждой ABI-сборки — 10 × versionCode + n. Флейвор считает его при создании,
+// когда versionCode ещё ClearPDF-овский (6), поэтому пересчитываем от версии Доков.
+if (fdroidAbi != null) {
+    android.productFlavors.getByName("fdroid").versionCode =
+        10 * (android.defaultConfig.versionCode ?: 0) + fdroidAbis.indexOf(fdroidAbi) + 1
+}
