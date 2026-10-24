@@ -264,7 +264,15 @@ internal fun PdfContinuousPage(
             .onGloballyPositioned { textSelection.registerPage(page, it); pageLayout[0] = it }
             .then(pageTextSemantics)
             .onSizeChanged { sz ->
-                pageCanvasSizes[page] = Size(sz.width.toFloat(), sz.height.toFloat())
+                val size = Size(sz.width.toFloat(), sz.height.toFloat())
+                // Rotation / book mode resized the page: carry its markups (canvas px) along.
+                val old = pageCanvasSizes[page]
+                if (old != null && old != size && old.width > 0f && old.height > 0f && size.width > 0f && size.height > 0f) {
+                    val sx = size.width / old.width
+                    val sy = size.height / old.height
+                    for (i in marks.indices) marks[i] = marks[i].scaled(sx, sy)
+                }
+                pageCanvasSizes[page] = size
                 if (bitmap != null) pageBitmapSizes[page] = Size(bitmap.width.toFloat(), bitmap.height.toFloat())
             }
     ) {

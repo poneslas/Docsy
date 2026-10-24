@@ -191,6 +191,32 @@ internal sealed class PdfMarkup {
     }
 }
 
+/**
+ * This markup on a page canvas resized by [sx] × [sy]. Markups live in canvas pixels, and the
+ * viewer handles rotation itself (configChanges), so a rotation or a book-mode switch resizes the
+ * page under them: without this a rectangle or a signature stayed at its old pixels, off its place
+ * on screen and in the saved PDF. Sizes (stroke width, font) follow the width.
+ */
+internal fun PdfMarkup.scaled(sx: Float, sy: Float): PdfMarkup {
+    fun Offset.s() = Offset(x * sx, y * sy)
+    return when (this) {
+        is PdfMarkup.StrokeMarkup -> copy(points = points.map { it.s() }, width = width * sx)
+        is PdfMarkup.RectMarkup -> copy(start = start.s(), end = end.s())
+        is PdfMarkup.OvalMarkup -> copy(start = start.s(), end = end.s())
+        is PdfMarkup.LineMarkup -> copy(start = start.s(), end = end.s(), width = width * sx)
+        is PdfMarkup.TextBlockLineMarkup -> copy(width = width * sx)
+        is PdfMarkup.ImageMarkup -> copy(start = start.s(), end = end.s())
+        is PdfMarkup.TextBoxMarkup -> copy(position = position.s(), fontSize = fontSize * sx)
+        is PdfMarkup.TextEditMarkup -> copy(
+            rect = Rect(rect.left * sx, rect.top * sy, rect.right * sx, rect.bottom * sy),
+            baseline = baseline * sy,
+            fontSize = fontSize * sy
+        )
+        is PdfMarkup.NoteMarkup -> copy(anchor = anchor.s())
+        is PdfMarkup.TextBlockHighlightMarkup, is PdfMarkup.FormValueMarkup -> this
+    }
+}
+
 /** The paint an in-place text edit previews with: the line's real size and closest typeface. */
 internal fun PdfMarkup.TextEditMarkup.previewPaint(): android.graphics.Paint =
     android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
