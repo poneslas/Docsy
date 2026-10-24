@@ -592,23 +592,28 @@ fun PdfViewerScreen(
 
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val bmp = runCatching {
-            context.contentResolver.openInputStream(uri)?.use {
-                android.graphics.BitmapFactory.decodeStream(it)
+        scope.launch {
+            // Decode off the main thread, downsampled and EXIF-rotated: a 50 MP photo decoded at
+            // full size is ~200 MB of ARGB (OOM/ANR). 2048 px on the long edge is still sharp
+            // when the image fills a whole page at typical zoom, and costs at most ~16 MB.
+            val bmp = withContext(Dispatchers.IO) {
+                runCatching {
+                    com.chethan616.clearpdf.imageeditor.engine.ImageIo.decode(context, uri, maxDim = 2048)
+                }.getOrNull()
+            } ?: return@launch
+            // If an image is currently selected, replace its bitmap in place; otherwise place a
+            // new one on the page under the viewport (never silently on page 1).
+            val existingPage = annotationsByPage.entries.firstOrNull { (_, m) -> m.any { it is PdfMarkup.ImageMarkup && it.id == activeImageId } }?.key
+            val existingIdx = existingPage?.let { getPageMarks(it).indexOfLast { m -> m is PdfMarkup.ImageMarkup && m.id == activeImageId } } ?: -1
+            if (existingPage != null && existingIdx >= 0) {
+                val marks = getPageMarks(existingPage)
+                val existing = marks[existingIdx] as PdfMarkup.ImageMarkup
+                val ratio = bmp.height.toFloat() / bmp.width.toFloat().coerceAtLeast(1f)
+                val currentW = kotlin.math.abs(existing.end.x - existing.start.x).coerceAtLeast(20f)
+                marks[existingIdx] = existing.copy(bitmap = bmp, end = Offset(existing.end.x, existing.start.y + currentW * ratio), isSignature = false)
+            } else {
+                placeImageMarkup(bmp, isSignature = false)
             }
-        }.getOrNull() ?: return@rememberLauncherForActivityResult
-        // If an image is currently selected, replace its bitmap in place; otherwise place a
-        // new one on the page under the viewport (never silently on page 1).
-        val existingPage = annotationsByPage.entries.firstOrNull { (_, m) -> m.any { it is PdfMarkup.ImageMarkup && it.id == activeImageId } }?.key
-        val existingIdx = existingPage?.let { getPageMarks(it).indexOfLast { m -> m is PdfMarkup.ImageMarkup && m.id == activeImageId } } ?: -1
-        if (existingPage != null && existingIdx >= 0) {
-            val marks = getPageMarks(existingPage)
-            val existing = marks[existingIdx] as PdfMarkup.ImageMarkup
-            val ratio = bmp.height.toFloat() / bmp.width.toFloat().coerceAtLeast(1f)
-            val currentW = kotlin.math.abs(existing.end.x - existing.start.x).coerceAtLeast(20f)
-            marks[existingIdx] = existing.copy(bitmap = bmp, end = Offset(existing.end.x, existing.start.y + currentW * ratio), isSignature = false)
-        } else {
-            placeImageMarkup(bmp, isSignature = false)
         }
     }
 

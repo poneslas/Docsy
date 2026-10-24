@@ -95,8 +95,11 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.chethan616.clearpdf.ui.components.GlassDialog
 import com.chethan616.clearpdf.ui.components.GlassDialogAction
 import com.chethan616.clearpdf.ui.theme.LiquidGlassColors
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Full-screen signature capture dialog. Presents a dark canvas for the user to draw
@@ -174,23 +177,34 @@ fun SignaturePadDialog(
     }
 
     data class SavedSignature(val name: String, val bitmap: Bitmap, val file: java.io.File)
-    val savedSignatures = remember(context) {
-        mutableStateListOf<SavedSignature>().apply {
-            try {
-                com.chethan616.clearpdf.data.repository.SignatureManager
-                    .listSignatures(context)
-                    .mapNotNull { file ->
-                        com.chethan616.clearpdf.data.repository.SignatureManager
-                            .loadSignature(file)
-                            ?.let { SavedSignature(
-                                com.chethan616.clearpdf.data.repository.SignatureManager.displayName(file),
-                                it,
-                                file
-                            ) }
-                    }
-                    .forEach(::add)
-            } catch (_: Throwable) {}
+    val savedSignatures = remember(context) { mutableStateListOf<SavedSignature>() }
+    // Decoded on IO, not in composition: with a dozen saved signatures the pad used to stutter
+    // on open. A broken file is skipped (and logged) instead of hiding the whole list.
+    LaunchedEffect(context) {
+        val loaded = withContext(Dispatchers.IO) {
+            val sm = com.chethan616.clearpdf.data.repository.SignatureManager
+            val files = try {
+                sm.listSignatures(context)
+            } catch (e: Exception) {
+                android.util.Log.w("SignaturePad", "Couldn't list saved signatures", e)
+                emptyList()
+            }
+            files.mapNotNull { file ->
+                try {
+                    sm.loadSignature(file)?.let { SavedSignature(sm.displayName(file), it, file) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    android.util.Log.w("SignaturePad", "Skipping unreadable signature ${file.name}", e)
+                    null
+                } catch (e: OutOfMemoryError) {
+                    android.util.Log.w("SignaturePad", "Skipping signature too large to decode: ${file.name}", e)
+                    null
+                }
+            }
         }
+        savedSignatures.clear()
+        savedSignatures.addAll(loaded)
     }
     // Long-pressed saved signature awaiting a delete confirmation.
     var signatureToDelete by remember { mutableStateOf<SavedSignature?>(null) }
@@ -611,8 +625,12 @@ fun SignaturePadDialog(
                             pendingSignature = bmp
                             signatureName = ""
                             showNamePrompt = true
-                        } catch (e: Throwable) {
-                            e.printStackTrace()
+                        } catch (e: OutOfMemoryError) {
+                            // The bitmap is capped at 1000 px, so this is rare; keep the drawing
+                            // on the pad so the user can retry instead of crashing.
+                            android.util.Log.w("SignaturePad", "Not enough memory to render the signature", e)
+                        } catch (e: IllegalArgumentException) {
+                            android.util.Log.w("SignaturePad", "Couldn't render the signature", e)
                         }
                     },
                     backdrop = backdrop,
