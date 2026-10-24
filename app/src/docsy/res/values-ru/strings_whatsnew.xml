@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_markdown_title">Markdown открывается страницей</string>
-    <string name="docsy_new_markdown_desc">Заголовки, списки, код и таблицы. Широкая таблица листается в своей рамке.</string>
-    <string name="docsy_new_text_title">Логи, JSON, XML и код</string>
-    <string name="docsy_new_text_desc">Номера строк и подсветка. JSON и XML в одну строку раскладываются по уровням.</string>
-    <string name="docsy_new_find_title">Поиск в тексте и Markdown</string>
-    <string name="docsy_new_find_desc">Та же панель, что в PDF и Word, все совпадения подсвечены.</string>
-    <string name="docsy_new_print_title">Печать снова работает</string>
-    <string name="docsy_new_print_desc">«Печать» открывает окно принтера в PDF, Word и новых просмотрщиках.</string>
+    <string name="docsy_new_unsaved_title">«Сохранить» или «Не сохранять»</string>
+    <string name="docsy_new_unsaved_desc">Две кнопки при выходе с правками. Остаться — крестик или тап мимо.</string>
+    <string name="docsy_new_back_title">«Назад» по шагам</string>
+    <string name="docsy_new_back_desc">Сначала закрывает инструмент, потом меню, и только потом спрашивает о выходе.</string>
+    <string name="docsy_new_menu_title">Меню правки короче</string>
+    <string name="docsy_new_menu_desc">Рисовать, Лассо, Изображение, Текст — одно слово и своя иконка.</string>
+    <string name="docsy_new_safe_title">Сохранение надёжнее</string>
+    <string name="docsy_new_safe_desc">При записи поверх файла оригинал цел, пока новый не записан целиком.</string>
 </resources>

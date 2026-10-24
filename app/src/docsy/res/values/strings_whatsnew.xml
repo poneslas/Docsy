@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_markdown_title">Markdown opens as a page</string>
-    <string name="docsy_new_markdown_desc">Headings, lists, code and tables. A wide table scrolls inside its own box.</string>
-    <string name="docsy_new_text_title">Logs, JSON, XML and code</string>
-    <string name="docsy_new_text_desc">Line numbers and highlighting. JSON and XML in one line are laid out by level.</string>
-    <string name="docsy_new_find_title">Find in text and Markdown</string>
-    <string name="docsy_new_find_desc">The same find bar as in PDF and Word, with every match marked.</string>
-    <string name="docsy_new_print_title">Print works again</string>
-    <string name="docsy_new_print_desc">Print opens the printer dialog in PDF, Word and the new viewers.</string>
+    <string name="docsy_new_unsaved_title">Save or Don\'t Save</string>
+    <string name="docsy_new_unsaved_desc">Two buttons when you leave with edits. To stay, tap ✕ or outside.</string>
+    <string name="docsy_new_back_title">Back goes step by step</string>
+    <string name="docsy_new_back_desc">First it closes the tool, then the menu, and only then asks about leaving.</string>
+    <string name="docsy_new_menu_title">Shorter edit menu</string>
+    <string name="docsy_new_menu_desc">Draw, Lasso, Image, Text: one word and an icon each.</string>
+    <string name="docsy_new_safe_title">Saving is safer</string>
+    <string name="docsy_new_safe_desc">Saving over a file keeps the original until the new one is fully written.</string>
 </resources>

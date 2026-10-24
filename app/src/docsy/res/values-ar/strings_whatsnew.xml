@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_markdown_title">يُفتح Markdown كصفحة</string>
-    <string name="docsy_new_markdown_desc">العناوين والقوائم والشيفرة والجداول. الجدول العريض يتمرر داخل إطاره.</string>
-    <string name="docsy_new_text_title">السجلات وJSON وXML والشيفرة</string>
-    <string name="docsy_new_text_desc">أرقام الأسطر والتلوين. يُرتَّب JSON وXML المكتوبان في سطر واحد حسب المستويات.</string>
-    <string name="docsy_new_find_title">البحث في النص وMarkdown</string>
-    <string name="docsy_new_find_desc">شريط البحث نفسه كما في PDF وWord، مع تمييز كل النتائج.</string>
-    <string name="docsy_new_print_title">الطباعة تعمل من جديد</string>
-    <string name="docsy_new_print_desc">تفتح «طباعة» نافذة الطابعة في PDF وWord والعارضين الجديدين.</string>
+    <string name="docsy_new_unsaved_title">الحفظ أو عدم الحفظ</string>
+    <string name="docsy_new_unsaved_desc">زرّان عند الخروج مع تعديلات. للبقاء، اضغط ✕ أو خارج النافذة.</string>
+    <string name="docsy_new_back_title">الرجوع خطوة بخطوة</string>
+    <string name="docsy_new_back_desc">يُغلق الأداة أولاً، ثم القائمة، وبعدها فقط يسأل عن الخروج.</string>
+    <string name="docsy_new_menu_title">قائمة تعديل أقصر</string>
+    <string name="docsy_new_menu_desc">رسم، تحديد، صورة، نص: كلمة واحدة وأيقونة لكلٍّ منها.</string>
+    <string name="docsy_new_safe_title">حفظ أكثر أمانًا</string>
+    <string name="docsy_new_safe_desc">عند الحفظ فوق ملف، يبقى الأصل سليمًا حتى يُكتب الجديد بالكامل.</string>
 </resources>
