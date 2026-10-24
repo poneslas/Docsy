@@ -1,20 +1,20 @@
 {
-  "version": "1.6",
-  "versionCode": 10600,
+  "version": "1.7",
+  "versionCode": 10700,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.6/Docsy-1.6-arm64.apk",
-      "sha256": "bf1429fa164ccd800a5a23cbe7bb7523e8f95241c21f7078931a4b8d18e1915f",
-      "size": 34054197
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.7/Docsy-1.7-arm64.apk",
+      "sha256": "d3c30116c41a0d7bfaaf973cedfc8480f224fcc0f663c25716756ed2f1428289",
+      "size": 34075406
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.6/Docsy-1.6-universal.apk",
-      "sha256": "c71333a054af9b6aac30760866d0737414fd5e338a59854068d46a0e350cd4e0",
-      "size": 85701195
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.7/Docsy-1.7-universal.apk",
+      "sha256": "2a2eddf60b588867f04e27cf13dad3fdfe38faa8a92f3079ba40395e577e94e3",
+      "size": 85722399
     }
   },
   "notes": {
-    "ru": "Markdown страницей, логи и код с подсветкой, поиск, печать снова работает.",
-    "en": "Markdown as a page, logs and code with highlighting, find, printing works again."
+    "ru": "«Сохранить» или «Не сохранять», «назад» по шагам, меню правки короче, сохранение надёжнее.",
+    "en": "Save or Don't Save, back goes step by step, shorter edit menu, safer saving."
   }
 }
