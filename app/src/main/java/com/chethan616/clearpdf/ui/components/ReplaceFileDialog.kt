@@ -25,9 +25,9 @@ import com.kyant.backdrop.Backdrop
 
 /**
  * "Replace “name.pdf”?" — asked before Save writes over a file: the opened document itself, or a
- * file of the same name in the folder a copy is being saved to. Cancel (clear glass) ·
- * [otherLabel] (clear glass: save a copy instead) · Replace (accent). The three pills share the
- * width equally, so labels are single short words; [body] explains what each one does.
+ * file of the same name in the folder a copy is being saved to. Three outcomes, so the pills are
+ * stacked full width (three in a row cut translated labels): Replace (accent) on top, then
+ * [otherLabel] (save a copy instead) and Cancel; [body] explains what each one does.
  *
  * With [offerDontAsk] a "Don't ask again" switch is shown; [onReplace] receives its state. It is
  * offered only for replacing the opened document (the everyday Save), never for overwriting some
@@ -52,10 +52,10 @@ fun ReplaceFileDialog(
         onDismiss = onCancel,
         backdrop = backdrop,
         title = stringResource(R.string.replace_title, fileName),
-        actions = {
-            GlassDialogAction(stringResource(R.string.cancel), onClick = onCancel)
-            GlassDialogAction(otherLabel, onClick = onOther)
+        stackedActions = {
             GlassDialogAction(stringResource(R.string.replace_confirm), onClick = { onReplace(dontAsk) }, primary = true)
+            GlassDialogAction(otherLabel, onClick = onOther)
+            GlassDialogAction(stringResource(R.string.cancel), onClick = onCancel)
         }
     ) {
         BasicText(body, style = TextStyle(LiquidGlassColors.secondary(isDark), 15.sp))

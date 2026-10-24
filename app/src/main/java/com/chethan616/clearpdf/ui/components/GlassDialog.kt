@@ -107,6 +107,11 @@ private val LocalDialogSurface = staticCompositionLocalOf { Color.Unspecified }
  * the same progress (ControlCenter-style progressive lens). Back press and scrim tap call [onDismiss].
  *
  * [onClose], when set, adds a small round glass ✕ at the top-right of the card, beside the title.
+ * [headerActions] puts more round glass buttons there, left of the ✕ (use [GlassDialogHeaderButton]),
+ * e.g. a red trash can instead of a third "Delete" pill in the action row.
+ *
+ * [stackedActions], when set, replaces the [actions] row with full-width pills stacked top to bottom
+ * (put the primary one first), for a choice of three outcomes whose labels won't fit side by side.
  */
 @Composable
 fun GlassDialog(
@@ -117,7 +122,9 @@ fun GlassDialog(
     modifier: Modifier = Modifier,
     dismissOnScrimTap: Boolean = true,
     onClose: (() -> Unit)? = null,
+    headerActions: (@Composable RowScope.() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    stackedActions: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val progress = remember { Animatable(0f) }
@@ -212,23 +219,22 @@ fun GlassDialog(
                 LocalDialogBlur provides blurDp,
                 LocalDialogSurface provides containerColor
             ) {
-                if (onClose != null) {
+                if (onClose != null || headerActions != null) {
                     Row(
                         Modifier.fillMaxWidth().padding(start = 28f.dp, top = 16f.dp, end = 16f.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8f.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         BasicText(
                             title.orEmpty(),
-                            Modifier.weight(1f).padding(top = 8f.dp, end = 12f.dp, bottom = 8f.dp),
+                            Modifier.weight(1f).padding(top = 8f.dp, end = 4f.dp, bottom = 8f.dp),
                             style = TextStyle(contentColor, 22f.sp, FontWeight.SemiBold)
                         )
-                        LiquidIconButton(
-                            onClick = onClose,
-                            backdrop = backdrop,
-                            modifier = Modifier.size(32.dp),
-                            surfaceColor = glassDialogPlatter(!isLight)
-                        ) {
-                            CloseCrossIcon(Modifier.size(12.dp), LiquidGlassColors.secondary(!isLight))
+                        headerActions?.invoke(this)
+                        if (onClose != null) {
+                            GlassDialogHeaderButton(onClick = onClose) {
+                                CloseCrossIcon(Modifier.size(12.dp), LiquidGlassColors.secondary(!isLight))
+                            }
                         }
                     }
                 } else if (title != null) {
@@ -243,24 +249,55 @@ fun GlassDialog(
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24f.dp, vertical = 8f.dp)) {
                     content()
                 }
-                Row(
-                    Modifier
-                        .padding(24f.dp, 12f.dp, 24f.dp, 24f.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12f.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    content = actions
-                )
+                if (stackedActions != null) {
+                    Column(
+                        Modifier
+                            .padding(24f.dp, 12f.dp, 24f.dp, 24f.dp)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10f.dp),
+                        content = stackedActions
+                    )
+                } else {
+                    Row(
+                        Modifier
+                            .padding(24f.dp, 12f.dp, 24f.dp, 24f.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12f.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = actions
+                    )
+                }
             }
         }
     }
 }
 
 /**
+ * Small round glass button for [GlassDialog]'s header, the same 32 dp platter as its ✕. Use it in
+ * `headerActions`; [content] is the icon (give it a content description).
+ */
+@Composable
+fun GlassDialogHeaderButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val backdrop = LocalDialogBackdrop.current ?: error("GlassDialogHeaderButton must be used inside GlassDialog")
+    LiquidIconButton(
+        onClick = onClick,
+        backdrop = backdrop,
+        modifier = modifier.size(32.dp),
+        surfaceColor = glassDialogPlatter(LocalIsDarkMode.current),
+        content = content
+    )
+}
+
+/**
  * Liquid-glass capsule action for [GlassDialog]'s `actions` slot, in the vivid "Get it"
  * [LiquidButton] style: primary = [tint] (screen accent), neutral = clear glass frosted like the
  * panel, destructive = the neutral platter with red SemiBold text (iOS-style, so a red action never
- * outshouts the primary one). Each pill refracts the same live backdrop as the dialog.
+ * outshouts the primary one). Each pill refracts the same live backdrop as the dialog. In the row
+ * the pills share the width equally.
  */
 @Composable
 fun RowScope.GlassDialogAction(
@@ -271,6 +308,29 @@ fun RowScope.GlassDialogAction(
     destructive: Boolean = false,
     enabled: Boolean = true,
     tint: Color = LiquidGlassColors.Blue
+) = GlassDialogActionPill(text, onClick, modifier.weight(1f), primary, destructive, enabled, tint)
+
+/** The same pill for [GlassDialog]'s `stackedActions`: full width, one per line. */
+@Composable
+fun ColumnScope.GlassDialogAction(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    primary: Boolean = false,
+    destructive: Boolean = false,
+    enabled: Boolean = true,
+    tint: Color = LiquidGlassColors.Blue
+) = GlassDialogActionPill(text, onClick, modifier.fillMaxWidth(), primary, destructive, enabled, tint)
+
+@Composable
+private fun GlassDialogActionPill(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    primary: Boolean,
+    destructive: Boolean,
+    enabled: Boolean,
+    tint: Color
 ) {
     val isDark = LocalIsDarkMode.current
     val haptics = LocalHapticFeedback.current
@@ -290,7 +350,6 @@ fun RowScope.GlassDialogAction(
         },
         backdrop = backdrop,
         modifier = modifier
-            .weight(1f)
             .graphicsLayer { alpha = if (enabled) 1f else 0.4f },
         tint = pillTint,
         // Neutral pills get a SOLID theme platter, not the panel's wash: they refract the screen
@@ -299,7 +358,7 @@ fun RowScope.GlassDialogAction(
         // only the primary pill is a vivid tint.
         surfaceColor = if (pillTint == Color.Unspecified) glassDialogPlatter(isDark) else Color.Unspecified,
         blurRadius = LocalDialogBlur.current,
-        // Tight padding so a three-action row (e.g. "Replace file?") still fits translated labels.
+        // Tight padding so translated labels fit when pills share a row.
         horizontalContentPadding = 8.dp
     ) {
         BasicText(

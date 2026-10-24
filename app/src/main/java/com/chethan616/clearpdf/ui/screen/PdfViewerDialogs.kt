@@ -16,6 +16,8 @@ import androidx.compose.material.icons.rounded.TextSnippet
 import com.chethan616.clearpdf.ui.components.GlassDialogField
 import com.chethan616.clearpdf.ui.components.GlassDialogAction
 import com.chethan616.clearpdf.ui.components.GlassDialog
+import com.chethan616.clearpdf.ui.components.GlassDialogHeaderButton
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -89,6 +91,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -241,7 +244,8 @@ private fun DialogRow(
 
 /**
  * Editor for an inserted text box or sticky note, on the shared [GlassDialog] card (in-window, so the
- * glass samples the real page). Theme ink, solid field, vivid Save.
+ * glass samples the real page). Theme ink, solid field, vivid Save. Delete is a red trash can in the
+ * header, so the action row is just Cancel · Save.
  */
 @Composable
 internal fun AnnotationEditorDialog(
@@ -267,8 +271,12 @@ internal fun AnnotationEditorDialog(
         onDismiss = onDismiss,
         backdrop = backdrop,
         title = if (isNote) stringResource(R.string.anno_note_title) else stringResource(R.string.anno_text_title),
+        headerActions = {
+            GlassDialogHeaderButton(onClick = onDelete) {
+                Icon(Icons.Rounded.Delete, stringResource(R.string.delete), Modifier.size(18.dp), LiquidGlassColors.Red)
+            }
+        },
         actions = {
-            GlassDialogAction(stringResource(R.string.delete), onDelete, destructive = true)
             GlassDialogAction(stringResource(R.string.cancel), onDismiss)
             GlassDialogAction(stringResource(R.string.anno_save), { onSave(text, color, fontSize) }, primary = true)
         }
@@ -329,7 +337,6 @@ internal fun TextEditDialog(
         backdrop = backdrop,
         title = stringResource(R.string.text_edit_title),
         actions = {
-            if (canRevert) GlassDialogAction(stringResource(R.string.text_edit_revert), onRevert, destructive = true)
             GlassDialogAction(stringResource(R.string.cancel), onDismiss)
             GlassDialogAction(stringResource(R.string.viewer_done), { onSave(text) }, primary = true)
         }
@@ -350,6 +357,18 @@ internal fun TextEditDialog(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onSave(text) })
         )
+        if (canRevert) {
+            // A quiet link under the field rather than a third pill: Cancel · Done stay readable.
+            BasicText(
+                stringResource(R.string.text_edit_revert),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(role = Role.Button, onClick = onRevert)
+                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                style = TextStyle(LiquidGlassColors.Red, 13.sp, FontWeight.Medium)
+            )
+        }
         if (text != original) {
             Spacer(Modifier.height(8.dp))
             BasicText(
