@@ -1,0 +1,36 @@
+name: Docsy unit tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run unit tests
+        # JVM tests live in app (run on the foss flavor) and pdf-core; the other modules have none.
+        run: ./gradlew :app:testFossDebugUnitTest :pdf-core:testDebugUnitTest --continue --stacktrace -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" -Pkotlin.daemon.jvmargs=-Xmx4g
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docsy-test-reports
+          path: |
+            app/build/reports/tests/
+            pdf-core/build/reports/tests/
