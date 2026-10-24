@@ -472,13 +472,15 @@ private fun SpreadsheetViewerContent(
     fun requestBack() {
         when {
             dropdown != null -> dropdown = null
+            showSearch -> { showSearch = false; searchQuery = "" }
             panel != Panel.NONE -> panel = Panel.NONE
             editing -> { editing = false; draft = anchorEditText(); focusManager.clearFocus() }
+            editMode -> { editMode = false; panel = Panel.NONE; focusManager.clearFocus() }
             state.dirty -> confirmExit = true
             else -> onBack()
         }
     }
-    BackHandler(enabled = dropdown != null || panel != Panel.NONE || editing || state.dirty) { requestBack() }
+    BackHandler(enabled = dropdown != null || showSearch || panel != Panel.NONE || editing || editMode || state.dirty) { requestBack() }
 
     fun styleSel(patch: StylePatch) {
         val sel = selection ?: return
@@ -540,7 +542,7 @@ private fun SpreadsheetViewerContent(
                         }
                     }
                     if (!editMode) {
-                        LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                        LiquidIconButton(onClick = { showSearch = !showSearch; if (!showSearch) searchQuery = "" }, backdrop = headerBackdrop, modifier = findInk.modifier) {
                             Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
                         }
                         LiquidIconButton(onClick = onToggleSheet, backdrop = headerBackdrop, modifier = sheetInk.modifier) {

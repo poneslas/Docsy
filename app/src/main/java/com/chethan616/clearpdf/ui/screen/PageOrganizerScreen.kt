@@ -110,6 +110,10 @@ fun PageOrganizerScreen(
         }
     }
     androidx.activity.compose.BackHandler(enabled = (state.dirty || state.isSaving) && !confirmExit && !showSaveDialog) { requestBack() }
+    // Back clears the page selection first; registered later, so it wins over the exit handler above.
+    androidx.activity.compose.BackHandler(enabled = state.selectedIds.isNotEmpty() && !confirmExit && !showSaveDialog) {
+        viewModel.clearSelection()
+    }
     val screenBackdrop = rememberScreenBackdrop(backdrop)
 
     var isVisible by remember { mutableStateOf(false) }

@@ -236,7 +236,7 @@ private fun MarkdownViewerContent(
                             contentColor = titleInk.color
                         )
                     }
-                    LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                    LiquidIconButton(onClick = { if (showSearch) closeSearch() else showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
                         Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
                     }
                     LiquidIconButton(onClick = onTogglePaper, backdrop = headerBackdrop, modifier = paperInk.modifier) {

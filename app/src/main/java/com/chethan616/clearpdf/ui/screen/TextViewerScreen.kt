@@ -239,7 +239,7 @@ private fun TextViewerContent(
                             contentColor = titleInk.color
                         )
                     }
-                    LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                    LiquidIconButton(onClick = { if (showSearch) closeSearch() else showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
                         Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
                     }
                     LiquidIconButton(

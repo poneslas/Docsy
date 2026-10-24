@@ -147,9 +147,21 @@ fun ImageEditorScreen(
     fun toggleExpanded(tool: Tool) { expandedTools[tool] = expandedTools[tool] != true }
 
     val requestBack = { if (state.hasEdits) showDiscard = true else onBack() }
-    BackHandler(enabled = sheet == null && colorTarget == null && !showDiscard && state.hasEdits) { showDiscard = true }
-    BackHandler(enabled = sheet != null) { sheet = null }
-    BackHandler(enabled = colorTarget != null) { colorTarget = null }
+    // System back steps out one level at a time: colour picker, sheet, the open "More" tool,
+    // the active tool (back to Adjust, the default), and only then asks to exit. The expanded tool row
+    // is a remembered preference, not a step, so back leaves it alone.
+    BackHandler(
+        enabled = !showDiscard && (colorTarget != null || sheet != null || state.more != MoreTool.None ||
+            state.tool != Tool.Adjust || state.hasEdits)
+    ) {
+        when {
+            colorTarget != null -> colorTarget = null
+            sheet != null -> sheet = null
+            state.more != MoreTool.None -> viewModel.closeMore()
+            state.tool != Tool.Adjust -> viewModel.selectTool(Tool.Adjust)
+            else -> showDiscard = true
+        }
+    }
 
     val pickWatermarkImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.setWatermarkImage(context, it) }

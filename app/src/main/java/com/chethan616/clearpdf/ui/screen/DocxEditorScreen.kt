@@ -854,7 +854,7 @@ private fun DocxEditorContent(
                         }
                     }
                     if (!editMode) {
-                        LiquidIconButton(onClick = { showSearch = true }, backdrop = headerBackdrop, modifier = findInk.modifier) {
+                        LiquidIconButton(onClick = { showSearch = !showSearch; if (!showSearch) searchQuery = "" }, backdrop = headerBackdrop, modifier = findInk.modifier) {
                             Icon(Icons.Rounded.Search, stringResource(R.string.viewer_find), Modifier.size(20.dp), findInk.color)
                         }
                         LiquidIconButton(onClick = onTogglePaper, backdrop = headerBackdrop, modifier = paperInk.modifier) {
