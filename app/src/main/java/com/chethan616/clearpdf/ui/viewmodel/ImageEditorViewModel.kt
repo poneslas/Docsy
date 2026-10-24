@@ -528,13 +528,18 @@ class ImageEditorViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(exporting = true, exportProgress = 0f) }
         viewModelScope.launch {
             val msg = runCatching {
-                val bmp = renderFullResolution() ?: return@runCatching "Couldn't render the image."
+                val bmp = renderFullResolution() ?: return@runCatching context.getString(com.chethan616.clearpdf.R.string.ie_render_failed)
                 val file = withContext(Dispatchers.IO) {
                     ImageIo.encodeToCache(context, bmp, _state.value.fileName, _state.value.export, sourceUri)
                 }
                 bmp.recycle()
                 block(file)
-            }.getOrElse { e -> if (e is OutOfMemoryError) "Not enough memory to export at full size." else "Couldn't export the image." }
+            }.getOrElse { e ->
+                context.getString(
+                    if (e is OutOfMemoryError) com.chethan616.clearpdf.R.string.ie_export_oom
+                    else com.chethan616.clearpdf.R.string.ie_export_failed
+                )
+            }
             _state.update { it.copy(exporting = false, exportProgress = 0f, message = msg) }
         }
     }

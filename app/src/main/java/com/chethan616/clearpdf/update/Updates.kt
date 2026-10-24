@@ -223,42 +223,50 @@ object Updates {
 
     /**
      * Blocking: downloads the APK into the cache, reporting 0..100, and checks its SHA-256.
-     * Returns the file; throws when the download breaks or the file doesn't match.
+     * Returns the file; throws when the download breaks or the file doesn't match. On any
+     * failure the partial file is deleted; the connection is always closed.
+     *
+     * The SHA-256 comes from the same update.json as the URL, so it only catches a broken or
+     * truncated download, not a swapped file. Tampering is caught by Android itself: the
+     * installer refuses an APK whose signature differs from the installed Docsy.
      */
     private fun download(context: Context, info: UpdateInfo, progress: (Int) -> Unit): File {
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
         dir.listFiles()?.forEach { it.delete() } // old downloads
         val file = File(dir, "Docsy-${info.version}.apk")
         val connection = URL(info.url).openConnection() as HttpURLConnection
-        connection.connectTimeout = 15_000
-        connection.readTimeout = 30_000
-        val total = connection.contentLengthLong.takeIf { it > 0 } ?: info.size
-        val digest = MessageDigest.getInstance("SHA-256")
-        connection.inputStream.use { input ->
-            file.outputStream().use { out ->
-                val buffer = ByteArray(64 * 1024)
-                var done = 0L
-                var last = -1
-                while (true) {
-                    val n = input.read(buffer)
-                    if (n < 0) break
-                    out.write(buffer, 0, n)
-                    digest.update(buffer, 0, n)
-                    done += n
-                    if (total > 0) {
-                        val p = (100 * done / total).toInt()
-                        if (p != last) { last = p; progress(p) }
+        var ok = false
+        try {
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 30_000
+            val total = connection.contentLengthLong.takeIf { it > 0 } ?: info.size
+            val digest = MessageDigest.getInstance("SHA-256")
+            connection.inputStream.use { input ->
+                file.outputStream().use { out ->
+                    val buffer = ByteArray(64 * 1024)
+                    var done = 0L
+                    var last = -1
+                    while (true) {
+                        val n = input.read(buffer)
+                        if (n < 0) break
+                        out.write(buffer, 0, n)
+                        digest.update(buffer, 0, n)
+                        done += n
+                        if (total > 0) {
+                            val p = (100 * done / total).toInt()
+                            if (p != last) { last = p; progress(p) }
+                        }
                     }
                 }
             }
+            val sha = digest.digest().joinToString("") { "%02x".format(it) }
+            if (sha != info.sha256) throw BadUpdateFile()
+            ok = true
+            return file
+        } finally {
+            connection.disconnect()
+            if (!ok) file.delete()
         }
-        connection.disconnect()
-        val sha = digest.digest().joinToString("") { "%02x".format(it) }
-        if (sha != info.sha256) {
-            file.delete()
-            throw BadUpdateFile()
-        }
-        return file
     }
 
     class BadUpdateFile : Exception()

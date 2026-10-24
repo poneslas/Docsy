@@ -55,8 +55,10 @@ class MarkdownViewerViewModel : ViewModel() {
             }
             val loaded = withContext(Dispatchers.IO) {
                 val readable = runCatching { LocalDocumentMirror.resolve(context, uri, "md") }.getOrDefault(uri)
-                val bytes = runCatching { context.contentResolver.openInputStream(readable)?.use { it.readBytes() } }.getOrNull()
-                    ?: return@withContext null
+                // Same cap as the text viewer: a huge .md (say, a log) shows its start instead of OOM.
+                val bytes = runCatching {
+                    context.contentResolver.openInputStream(readable)?.use { it.readNBytesCompat(TextViewerViewModel.MaxBytes) }
+                }.getOrNull() ?: return@withContext null
                 val local = runCatching { copyToCache(context, bytes, name) }.getOrNull()
                 val doc = withContext(Dispatchers.Default) { runCatching { MarkdownReader.read(TextDecoding.decode(bytes)) }.getOrNull() }
                 Triple(doc, local, bytes.size.toLong())

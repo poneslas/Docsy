@@ -194,22 +194,23 @@ class TextViewerViewModel : ViewModel() {
             if (i != -1 && c.moveToFirst()) c.getString(i) else null
         }
 
-    private fun java.io.InputStream.readNBytesCompat(limit: Int): ByteArray {
-        val out = java.io.ByteArrayOutputStream()
-        val buf = ByteArray(64 * 1024)
-        var total = 0
-        while (total < limit) {
-            val r = read(buf, 0, minOf(buf.size, limit - total))
-            if (r < 0) break
-            out.write(buf, 0, r)
-            total += r
-        }
-        return out.toByteArray()
-    }
-
     companion object {
         /** A phone viewer, not a log server: past this, the start of the file is shown. */
         const val MaxBytes = 24 * 1024 * 1024
         private const val Piece = 4000
     }
+}
+
+/** Reads at most [limit] bytes (InputStream.readNBytes needs API 33). Shared with the Markdown viewer. */
+internal fun java.io.InputStream.readNBytesCompat(limit: Int): ByteArray {
+    val out = java.io.ByteArrayOutputStream()
+    val buf = ByteArray(64 * 1024)
+    var total = 0
+    while (total < limit) {
+        val r = read(buf, 0, minOf(buf.size, limit - total))
+        if (r < 0) break
+        out.write(buf, 0, r)
+        total += r
+    }
+    return out.toByteArray()
 }

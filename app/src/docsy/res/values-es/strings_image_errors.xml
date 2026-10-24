@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Доки: ошибки сохранения в редакторе изображений. -->
+<resources>
+    <string name="ie_render_failed">No se pudo procesar la imagen.</string>
+    <string name="ie_export_oom">No hay memoria suficiente para exportar a tamaño completo.</string>
+    <string name="ie_export_failed">No se pudo exportar la imagen.</string>
+</resources>
