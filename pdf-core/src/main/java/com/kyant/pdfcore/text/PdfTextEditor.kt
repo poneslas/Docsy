@@ -24,6 +24,7 @@ import com.tom_roush.pdfbox.util.Vector
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.math.abs
+import kotlin.math.hypot
 
 /**
  * Replace the text inside a box with [newText]. Boxes are normalized (0..1) in the same display
@@ -159,7 +160,10 @@ object PdfTextEditor {
                     val aL = advanceOf(lastHit)
                     val dx = (t0.translateX + advance * t0.getValue(0, 0)) - (tl.translateX + aL * tl.getValue(0, 0))
                     val dy = (t0.translateY + advance * t0.getValue(0, 1)) - (tl.translateY + aL * tl.getValue(0, 1))
-                    redrawShifted(cs, plan.suffix, dx, dy, llx, lly)
+                    val dirLen = hypot(t0.getValue(0, 0), t0.getValue(0, 1)).coerceAtLeast(1e-6f)
+                    val growth = (dx * t0.getValue(0, 0) + dy * t0.getValue(0, 1)) / dirLen
+                    val margin = recorder.glyphs.filter { it.tp.dir == lastHit.tp.dir }.maxOf { it.tp.x + it.tp.width }
+                    redrawShifted(cs, plan.suffix, dx, dy, llx, lly, fitFactors(plan.suffix, lastHit, growth, margin))
                 }
             }
         }
@@ -483,16 +487,49 @@ object PdfTextEditor {
             c
         }
 
-    /** The rest of an edited line, re-drawn from its original bytes and fonts, moved by (dx, dy). */
-    private fun redrawShifted(cs: PDPageContentStream, glyphs: List<Glyph>, dx: Float, dy: Float, llx: Float, lly: Float) {
+    /**
+     * What part (0..1) of the line's [growth] each glyph of [suffix] moves by. When the longer line
+     * would run past the page's text [margin] (justified text already reaches it), the overflow is
+     * taken out of the gaps before the following words, evenly, never closing a gap below half a
+     * space, so the line keeps its right edge. Otherwise everything moves by the full growth.
+     */
+    private fun fitFactors(suffix: List<Glyph>, lastHit: Glyph, growth: Float, margin: Float): FloatArray {
+        val f = FloatArray(suffix.size) { 1f }
+        if (growth <= 0f || suffix.isEmpty()) return f
+        val end = suffix.last().let { it.tp.x + it.tp.width }
+        val excess = growth - (margin - end).coerceAtLeast(0f)
+        if (excess <= 0f) return f
+        val space = lastHit.tp.widthOfSpace.takeIf { it > 0f && it.isFinite() } ?: (lastHit.tp.width * 0.5f)
+        val word = IntArray(suffix.size) // how many word gaps precede each glyph
+        val gaps = ArrayList<Float>()
+        var prevEnd = lastHit.tp.x + lastHit.tp.width
+        var afterSpace = false
+        for ((i, g) in suffix.withIndex()) {
+            if (g.tp.unicode.isNullOrBlank()) afterSpace = true else {
+                val gap = g.tp.x - prevEnd
+                if (afterSpace || gap > space * 0.3f) gaps += gap
+                prevEnd = g.tp.x + g.tp.width
+                afterSpace = false
+            }
+            word[i] = gaps.size
+        }
+        if (gaps.isEmpty()) return f
+        val perGap = minOf(excess / gaps.size, gaps.minOf { it - space * 0.5f }).coerceAtLeast(0f)
+        for (i in suffix.indices) f[i] = 1f - perGap * word[i] / growth
+        return f
+    }
+
+    /** The rest of an edited line, re-drawn from its original bytes and fonts, glyph i moved by (dx, dy) × [factors]`[i]`. */
+    private fun redrawShifted(cs: PDPageContentStream, glyphs: List<Glyph>, dx: Float, dy: Float, llx: Float, lly: Float, factors: FloatArray) {
         cs.beginText()
         var font: PDFont? = null
         var rgb = Int.MIN_VALUE
-        for (g in glyphs) {
+        for ((i, g) in glyphs.withIndex()) {
             if (g.rgb != rgb) { cs.setNonStrokingColor((g.rgb shr 16) and 0xFF, (g.rgb shr 8) and 0xFF, g.rgb and 0xFF); rgb = g.rgb }
             if (g.font !== font) { cs.setFont(g.font, 1f); font = g.font }
             val t = trmOf(g, llx, lly)
-            cs.setTextMatrix(Matrix(t.getValue(0, 0), t.getValue(0, 1), t.getValue(1, 0), t.getValue(1, 1), t.translateX + dx, t.translateY + dy))
+            val k = factors.getOrElse(i) { 1f }
+            cs.setTextMatrix(Matrix(t.getValue(0, 0), t.getValue(0, 1), t.getValue(1, 0), t.getValue(1, 1), t.translateX + dx * k, t.translateY + dy * k))
             cs.appendRawCommands(hexShow(g.bytes))
         }
         cs.endText()
