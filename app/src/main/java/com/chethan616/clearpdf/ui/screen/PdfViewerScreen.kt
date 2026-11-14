@@ -1690,13 +1690,15 @@ fun PdfViewerScreen(
         )
 
         // ── Page scrubber (doubles as the fading scroll indicator) ─────────
-        // Always present on multi-page docs so fast scrubbing is one drag away,
-        // independent of the auto-hiding chrome. It brightens the moment the list
-        // scrolls/flings and gently fades back to a slim idle state when at rest,
-        // so it reads as an iOS-style scroll indicator without a second element.
-        // Held while the rail itself is being dragged. Dragging it does not scroll the list (that
-        // only happens on release), so without this the idle fade would run mid-drag and take the
-        // thumbnail preview down to 40% opacity — which reads as the preview "half disappearing".
+        // On multi-page docs (5+) so fast scrubbing is one drag away, independent of the
+        // auto-hiding chrome. It brightens the moment the list scrolls/flings and gently fades
+        // back to a slim idle state when at rest, so it reads as an iOS-style scroll indicator
+        // without a second element. Held while the rail itself is being dragged. Dragging it does
+        // not scroll the list (that only happens on release), so without this the idle fade would
+        // run mid-drag and take the thumbnail preview down to 40% opacity — which reads as the
+        // preview "half disappearing".
+        // Short documents (≤ 4 pages) hide the rail entirely: with two positions on a two-pager
+        // it reads as a broken scrollbar, and there is nothing to scrub through anyway.
         var scrubberDragging by remember { mutableStateOf(false) }
         val scrubberBright = listState.isScrollInProgress || scrubberDragging
         val scrubberAlpha by androidx.compose.animation.core.animateFloatAsState(
@@ -1705,10 +1707,10 @@ fun PdfViewerScreen(
             label = "scrubberFade"
         )
         AnimatedVisibility(
-            visible  = safePageCount > 1 && scale <= 1.01f,
+            visible  = safePageCount > 4 && scale <= 1.01f,
             enter    = fadeIn(androidx.compose.animation.core.spring(stiffness = Spring.StiffnessMedium)) + scaleIn(initialScale = 0.92f, animationSpec = androidx.compose.animation.core.spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
             exit     = fadeOut(androidx.compose.animation.core.spring(stiffness = Spring.StiffnessMedium)) + scaleOut(targetScale = 0.92f),
-            modifier = Modifier.align(Alignment.CenterEnd).graphicsLayer { alpha = scrubberAlpha }.navigationBarsPadding().statusBarsPadding().padding(end = 8.dp)
+            modifier = Modifier.align(Alignment.CenterEnd).graphicsLayer { alpha = scrubberAlpha }.navigationBarsPadding().statusBarsPadding().padding(end = 4.dp)
         ) {
             PageScrubber(
                 currentPage      = currentPageIndex,
