@@ -8,7 +8,7 @@
     <string name="update_allow_button">Продолжить установку</string>
     <string name="update_bad_file">Файл скачался с ошибкой. Попробуйте ещё раз.</string>
     <string name="update_no_network">Не скачалось. Проверьте интернет и попробуйте ещё раз.</string>
-    <string name="update_setting">Проверять сами</string>
+    <string name="update_setting">Проверять автоматически</string>
     <string name="update_setting_desc">Раз в сутки, когда открываете Доки</string>
     <string name="update_checking">Проверяю обновления…</string>
     <string name="update_latest">У вас последняя версия</string>
