@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_unsaved_title">Save or Don\'t Save</string>
-    <string name="docsy_new_unsaved_desc">Two buttons when you leave with edits. To stay, tap ✕ or outside.</string>
-    <string name="docsy_new_back_title">Back goes step by step</string>
-    <string name="docsy_new_back_desc">First it closes the tool, then the menu, and only then asks about leaving.</string>
-    <string name="docsy_new_menu_title">Shorter edit menu</string>
-    <string name="docsy_new_menu_desc">Draw, Lasso, Image, Text: one word and an icon each.</string>
-    <string name="docsy_new_safe_title">Saving is safer</string>
-    <string name="docsy_new_safe_desc">Saving over a file keeps the original until the new one is fully written.</string>
+    <string name="docsy_new_legacy_title">Old .xls and .ppt open again</string>
+    <string name="docsy_new_legacy_desc">The 1.7 release optimizer broke the legacy Office reader — it works now.</string>
 </resources>

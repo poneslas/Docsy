@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_unsaved_title">Salva o Non salvare</string>
-    <string name="docsy_new_unsaved_desc">Due pulsanti quando esci con modifiche. Per restare, tocca ✕ o fuori.</string>
-    <string name="docsy_new_back_title">Indietro passo per passo</string>
-    <string name="docsy_new_back_desc">Prima chiude lo strumento, poi il menu, e solo dopo chiede se uscire.</string>
-    <string name="docsy_new_menu_title">Menu di modifica più corto</string>
-    <string name="docsy_new_menu_desc">Disegna, Lazo, Immagine, Testo: una parola e un\'icona ciascuno.</string>
-    <string name="docsy_new_safe_title">Salvataggio più sicuro</string>
-    <string name="docsy_new_safe_desc">Salvando sopra un file, l\'originale resta intatto finché il nuovo non è completo.</string>
+    <string name="docsy_new_legacy_title">I vecchi .xls e .ppt si aprono di nuovo</string>
+    <string name="docsy_new_legacy_desc">L\'ottimizzazione della 1.7 rompeva il lettore dei vecchi formati Office — ora funziona.</string>
 </resources>

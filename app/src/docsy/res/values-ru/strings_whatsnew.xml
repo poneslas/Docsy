@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_unsaved_title">«Сохранить» или «Не сохранять»</string>
-    <string name="docsy_new_unsaved_desc">Две кнопки при выходе с правками. Остаться — крестик или тап мимо.</string>
-    <string name="docsy_new_back_title">«Назад» по шагам</string>
-    <string name="docsy_new_back_desc">Сначала закрывает инструмент, потом меню, и только потом спрашивает о выходе.</string>
-    <string name="docsy_new_menu_title">Меню правки короче</string>
-    <string name="docsy_new_menu_desc">Рисовать, Лассо, Изображение, Текст — одно слово и своя иконка.</string>
-    <string name="docsy_new_safe_title">Сохранение надёжнее</string>
-    <string name="docsy_new_safe_desc">При записи поверх файла оригинал цел, пока новый не записан целиком.</string>
+    <string name="docsy_new_legacy_title">Старые .xls и .ppt снова открываются</string>
+    <string name="docsy_new_legacy_desc">Оптимизация релиза 1.7 ломала чтение старых форматов Office — теперь читает.</string>
 </resources>
