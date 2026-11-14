@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_legacy_title">Old .xls and .ppt open again</string>
-    <string name="docsy_new_legacy_desc">The 1.7 release optimizer broke the legacy Office reader — it works now.</string>
+    <string name="docsy_new_share_tap_title">Share is one tap away</string>
+    <string name="docsy_new_share_tap_desc">Tap the corner button to share the document. Hold it and swipe up to open another file.</string>
+    <string name="docsy_new_scrub_title">Calmer corners on short PDFs</string>
+    <string name="docsy_new_scrub_desc">The page rail appears from 5 pages on; short documents keep a clean edge.</string>
 </resources>

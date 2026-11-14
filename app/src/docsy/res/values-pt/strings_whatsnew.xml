@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_legacy_title">Os .xls e .ppt antigos voltam a abrir</string>
-    <string name="docsy_new_legacy_desc">O otimizador da 1.7 quebrava o leitor dos formatos antigos do Office — agora funciona.</string>
+    <string name="docsy_new_share_tap_title">Partilhar é um só toque</string>
+    <string name="docsy_new_share_tap_desc">Toque no botão redondo para partilhar o documento. Mantenha-o premido e deslize para cima para abrir outro ficheiro.</string>
+    <string name="docsy_new_scrub_title">Cantos mais tranquilos em PDFs curtos</string>
+    <string name="docsy_new_scrub_desc">A barra de páginas aparece a partir de 5 páginas; os documentos curtos ficam com a margem limpa.</string>
 </resources>

@@ -1,7 +1,8 @@
 package com.chethan616.clearpdf.update
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.TableChart
+import androidx.compose.material.icons.rounded.IosShare
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.chethan616.clearpdf.R
@@ -21,7 +22,8 @@ import com.chethan616.clearpdf.ui.theme.LiquidGlassColors
  */
 object DocsyWhatsNew {
     val items: List<DocsyWhatsNewItem> = listOf(
-        DocsyWhatsNewItem(Icons.Rounded.TableChart, LiquidGlassColors.Teal, R.string.docsy_new_legacy_title, R.string.docsy_new_legacy_desc),
+        DocsyWhatsNewItem(Icons.Rounded.IosShare, LiquidGlassColors.Blue, R.string.docsy_new_share_tap_title, R.string.docsy_new_share_tap_desc),
+        DocsyWhatsNewItem(Icons.Rounded.MoreVert, LiquidGlassColors.Teal, R.string.docsy_new_scrub_title, R.string.docsy_new_scrub_desc),
     )
 }
 

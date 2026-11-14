@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_legacy_title">ملفات .xls و .ppt القديمة تُفتح مجددًا</string>
-    <string name="docsy_new_legacy_desc">كان مُحسِّن الإصدار 1.7 يعطّل قارئ صيغ Office القديمة، والآن يعمل.</string>
+    <string name="docsy_new_share_tap_title">المشاركة بنقرة واحدة</string>
+    <string name="docsy_new_share_tap_desc">انقر الزر الدائري لمشاركة المستند. اضغط مطولًا ثم اسحب لأعلى لفتح ملف آخر.</string>
+    <string name="docsy_new_scrub_title">حواف أكثر هدوءًا في ملفات PDF القصيرة</string>
+    <string name="docsy_new_scrub_desc">يظهر شريط الصفحات من 5 صفحات فأكثر؛ الملفات القصيرة بحافة نظيفة.</string>
 </resources>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Доки: пункты экрана «Что нового» (update/DocsyWhatsNew.kt). -->
 <resources>
-    <string name="docsy_new_legacy_title">Старые .xls и .ppt снова открываются</string>
-    <string name="docsy_new_legacy_desc">Оптимизация релиза 1.7 ломала чтение старых форматов Office — теперь читает.</string>
+    <string name="docsy_new_share_tap_title">«Поделиться» — в один тап</string>
+    <string name="docsy_new_share_tap_desc">Тап по круглой кнопке делится документом. Удержите её и проведите вверх, чтобы открыть другой файл.</string>
+    <string name="docsy_new_scrub_title">Спокойные края у коротких PDF</string>
+    <string name="docsy_new_scrub_desc">Рейка страниц появляется на документах от 5 страниц; короткие — с чистым краем.</string>
 </resources>
