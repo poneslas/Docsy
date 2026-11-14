@@ -233,6 +233,7 @@
     <string name="viewer_prev">Предыдущий</string>
     <string name="viewer_next">Следующий</string>
     <string name="viewer_open_another">Открыть другой PDF</string>
+    <string name="viewer_open_another_file">Открыть другой файл</string>
     <string name="viewer_share_document">Поделиться документом</string>
     <string name="viewer_editor_tools">Инструменты редактирования</string>
     <string name="viewer_quick_actions">Действия чтения</string>
@@ -741,7 +742,7 @@
     <string name="tour_reader_tools_message">Нажмите значок редактирования, чтобы выделять, рисовать, добавлять заметки или подписывать.</string>
     <string name="tour_reader_tools_ppt_message">Нажмите значок заметок, чтобы выделять, рисовать, добавлять заметки или подписывать.</string>
     <string name="tour_reader_share_title">Поделиться или открыть другой файл</string>
-    <string name="tour_reader_share_message">Нажмите капсулу, чтобы открыть другой файл. Чтобы поделиться, удерживайте её, затем проведите вверх.</string>
+    <string name="tour_reader_share_message">Нажмите капсулу, чтобы поделиться документом. Чтобы открыть другой файл, удерживайте её, затем проведите вверх.</string>
     <string name="tour_sheet_title">Редактирование таблицы</string>
     <string name="tour_sheet_message">Нажмите на карандаш, чтобы открыть форматирование ячеек, цвет и параметры макета.</string>
     <string name="back_to_library">Вернуться в библиотеку</string>
@@ -975,6 +976,6 @@
     <string name="motion_stretch">Растяжение при перетаскивании</string>
     <string name="motion_bloom">Рост при долгом нажатии</string>
     <string name="motion_reset">Сбросить движение</string>
-    <string name="settings_invert_share_morph">Поменять «Поделиться» и «Открыть»</string>
-    <string name="settings_invert_share_morph_desc">В просмотрщике нажмите круглую кнопку, чтобы поделиться документом, а нажмите, удерживайте и проведите вверх, чтобы открыть другой файл.</string>
+    <string name="settings_tap_opens_file">Тап открывает файл</string>
+    <string name="settings_tap_opens_file_desc">В просмотрщике нажмите круглую кнопку, чтобы открыть другой файл, а нажмите, удерживайте и проведите вверх, чтобы поделиться.</string>
 </resources>

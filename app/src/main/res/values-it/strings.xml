@@ -218,6 +218,7 @@
     <string name="viewer_prev">Precedente</string>
     <string name="viewer_next">Successivo</string>
     <string name="viewer_open_another">Apri un Altro PDF</string>
+    <string name="viewer_open_another_file">Apri un altro file</string>
     <string name="viewer_share_document">Condividi Documento</string>
     <string name="viewer_editor_tools">Strumenti Modifica</string>
     <string name="viewer_tools_coming_soon">Prossimamente</string>
@@ -809,7 +810,7 @@
     <string name="tour_reader_tools_message">Tocca l\'icona di modifica per evidenziare, disegnare, aggiungere note o firmare.</string>
     <string name="tour_reader_tools_ppt_message">Tocca il fumetto delle note per evidenziare, disegnare, aggiungere note o firmare.</string>
     <string name="tour_reader_share_title">Condividi o apri un altro file</string>
-    <string name="tour_reader_share_message">Tocca la capsula per aprire un altro file. Per condividere, tienila premuta e scorri verso l\'alto.</string>
+    <string name="tour_reader_share_message">Tocca la capsula per condividere il documento. Per aprire un altro file, tienila premuta e scorri verso l\'alto.</string>
     <string name="tour_sheet_title">Modifica un foglio di calcolo</string>
     <string name="tour_sheet_message">Tocca la matita per mostrare i controlli di formato, colore e layout delle celle.</string>
     <string name="back_to_library">Torna alla libreria</string>
@@ -975,6 +976,6 @@
     <string name="motion_stretch">Allungamento al trascinamento</string>
     <string name="motion_bloom">Espansione alla pressione prolungata</string>
     <string name="motion_reset">Ripristina movimento</string>
-    <string name="settings_invert_share_morph">Scambia condividi e apri</string>
-    <string name="settings_invert_share_morph_desc">Nel visualizzatore, tocca il pulsante rotondo per condividere il documento e tienilo premuto e scorri verso l\'alto per aprire un altro file.</string>
+    <string name="settings_tap_opens_file">Il tocco apre un file</string>
+    <string name="settings_tap_opens_file_desc">Nel visualizzatore, tocca il pulsante rotondo per aprire un altro file; tienilo premuto e scorri verso l\'alto per condividere il documento.</string>
 </resources>

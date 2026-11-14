@@ -531,14 +531,15 @@ fun SettingsScreen(
                         backdrop = backdrop
                     )
                     SettingsDivider(isLight)
-                    // The viewer's open/share morph: swap what the tap and the hold-and-swipe do.
-                    var invertShareMorph by remember { mutableStateOf(AppSettingsManager.getInvertShareMorph(context)) }
+                    // The viewer's open/share morph: tap shares; this toggle returns the old
+                    // arrangement where the tap opens a file and hold-and-swipe shares.
+                    var tapOpensFile by remember { mutableStateOf(AppSettingsManager.getTapOpensFile(context)) }
                     SettingsToggleRow(
                         icon = Icons.Rounded.SwapVert,
-                        title = stringResource(R.string.settings_invert_share_morph),
-                        desc = stringResource(R.string.settings_invert_share_morph_desc),
-                        checked = invertShareMorph,
-                        onCheckedChange = { invertShareMorph = it; AppSettingsManager.setInvertShareMorph(context, it) },
+                        title = stringResource(R.string.settings_tap_opens_file),
+                        desc = stringResource(R.string.settings_tap_opens_file_desc),
+                        checked = tapOpensFile,
+                        onCheckedChange = { tapOpensFile = it; AppSettingsManager.setTapOpensFile(context, it) },
                         backdrop = backdrop
                     )
                     SettingsDivider(isLight)

@@ -247,6 +247,7 @@
     <string name="viewer_prev">Previous</string>
     <string name="viewer_next">Next</string>
     <string name="viewer_open_another">Open Another PDF</string>
+    <string name="viewer_open_another_file">Open another file</string>
     <string name="viewer_share_document">Share Document</string>
     <string name="viewer_editor_tools">Editor Tools</string>
     <string name="viewer_quick_actions">Reader actions</string>
@@ -809,7 +810,7 @@
     <string name="tour_reader_tools_message">Tap the edit icon to highlight, draw, add notes, or sign.</string>
     <string name="tour_reader_tools_ppt_message">Tap the notes bubble to highlight, draw, add notes, or sign.</string>
     <string name="tour_reader_share_title">Share or open another file</string>
-    <string name="tour_reader_share_message">Tap the capsule to open another file. To share, press and hold it, then swipe up.</string>
+    <string name="tour_reader_share_message">Tap the capsule to share the document. To open another file, press and hold it, then swipe up.</string>
     <string name="tour_sheet_title">Edit a spreadsheet</string>
     <string name="tour_sheet_message">Tap the pencil to reveal cell formatting, color, and layout controls.</string>
     <string name="back_to_library">Return to library</string>
@@ -975,6 +976,6 @@
     <string name="motion_stretch">Drag stretch</string>
     <string name="motion_bloom">Long-press bloom</string>
     <string name="motion_reset">Reset motion</string>
-    <string name="settings_invert_share_morph">Swap share and open</string>
-    <string name="settings_invert_share_morph_desc">In the viewer, tap the round button to share the document and press, hold and swipe up to open another file.</string>
+    <string name="settings_tap_opens_file">Tap opens a file</string>
+    <string name="settings_tap_opens_file_desc">In the viewer, tap the round button to open another file; press, hold and swipe up to share the document.</string>
 </resources>

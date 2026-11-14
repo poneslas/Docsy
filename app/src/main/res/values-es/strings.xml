@@ -214,6 +214,7 @@
     <string name="viewer_prev">Anterior</string>
     <string name="viewer_next">Siguiente</string>
     <string name="viewer_open_another">Abrir otro PDF</string>
+    <string name="viewer_open_another_file">Abrir otro archivo</string>
     <string name="viewer_share_document">Compartir documento</string>
     <string name="viewer_editor_tools">Herramientas de edición</string>
     <string name="viewer_tools_coming_soon">Herramientas de edición próximamente</string>
@@ -558,7 +559,7 @@
     <string name="tour_reader_tools_message">Toca el icono de edición para resaltar, dibujar, añadir notas o firmar.</string>
     <string name="tour_reader_tools_ppt_message">Toca el icono de notas para resaltar, dibujar, añadir notas o firmar.</string>
     <string name="tour_reader_share_title">Compartir o abrir otro archivo</string>
-    <string name="tour_reader_share_message">Toca la cápsula para abrir otro archivo. Para compartir, mantenla pulsada y desliza hacia arriba.</string>
+    <string name="tour_reader_share_message">Toca la cápsula para compartir el documento. Para abrir otro archivo, mantenla pulsada y desliza hacia arriba.</string>
     <string name="tour_sheet_title">Editar una hoja de cálculo</string>
     <string name="tour_sheet_message">Toca el lápiz para mostrar las opciones de formato, color y diseño de celdas.</string>
     <string name="back_to_library">Volver a la biblioteca</string>
@@ -970,6 +971,6 @@
     <string name="motion_stretch">Estiramiento al arrastrar</string>
     <string name="motion_bloom">Crecimiento al mantener</string>
     <string name="motion_reset">Restablecer movimiento</string>
-    <string name="settings_invert_share_morph">Intercambiar compartir y abrir</string>
-    <string name="settings_invert_share_morph_desc">En el visor, toca el botón redondo para compartir el documento y mantenlo pulsado y desliza hacia arriba para abrir otro archivo.</string>
+    <string name="settings_tap_opens_file">El toque abre un archivo</string>
+    <string name="settings_tap_opens_file_desc">En el visor, toca el botón redondo para abrir otro archivo; mantenlo pulsado y desliza hacia arriba para compartir el documento.</string>
 </resources>

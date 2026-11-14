@@ -52,11 +52,16 @@ import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.shapes.Capsule
 
 /**
- * A liquid-glass circle with an Apple-style share gesture: **tap** = [onOpen]; **press-and-hold**
+ * A liquid-glass circle with an Apple-style share gesture: **tap** = [onShare]; **press-and-hold**
  * morphs the circle into a vertical glass capsule, and **swiping up** past a threshold then releasing
- * fires [onShare] (an iOS power-slider). Idle capsule is plain glass; it tints blue as the finger
+ * fires [onOpen] (an iOS power-slider). Idle capsule is plain glass; it tints blue as the finger
  * travels up. Fixed 52dp width; height animates 52→104. Meant to be placed as a bottom-anchored
  * overlay so the capsule grows strictly UPWARD.
+ *
+ * Share owns the tap on purpose: it is the action every other viewer in the app (text, Word,
+ * sheets, markdown) fires on a single tap of the same corner button, and the platform convention.
+ * Opening another file is the gesture; the settings toggle "Tap opens a file" swaps the two for
+ * people who preferred the old arrangement.
  *
  * Animation notes: height and both icon layers run off a **single** [updateTransition], so the icon
  * swap can't drift away from the morph the way a separate `Crossfade` clock did. The spring is
@@ -90,20 +95,18 @@ fun ShareMorphButton(
     modifier: Modifier = Modifier,
     /** The idle circle's diameter; the capsule grows to twice this. */
     size: Dp = 52.dp,
-    /**
-     * Settings -> Personalization -> Swap share and open: tap shares and the hold-and-swipe opens
-     * another file. Read from settings when not given.
-     */
-    inverted: Boolean? = null
+    /** Settings -> Personalization -> Tap opens a file: tap shares and the hold-and-swipe opens
+      * another file. Read from settings when not given. */
+    tapOpensFile: Boolean? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val swap = inverted ?: remember { com.chethan616.clearpdf.data.repository.AppSettingsManager.getInvertShareMorph(context) }
-    val tapAction = if (swap) onShare else onOpen
-    val swipeAction = if (swap) onOpen else onShare
-    val restIcon = if (swap) Icons.Rounded.IosShare else idleIcon
-    val restDesc = if (swap) stringResource(R.string.viewer_share_document) else idleContentDesc
-    val armedIcon = if (swap) idleIcon else Icons.Rounded.IosShare
-    val armedDesc = if (swap) idleContentDesc else stringResource(R.string.viewer_share_document)
+    val swap = tapOpensFile ?: remember { com.chethan616.clearpdf.data.repository.AppSettingsManager.getTapOpensFile(context) }
+    val tapAction = if (swap) onOpen else onShare
+    val swipeAction = if (swap) onShare else onOpen
+    val restIcon = if (swap) idleIcon else Icons.Rounded.IosShare
+    val restDesc = if (swap) idleContentDesc else stringResource(R.string.viewer_share_document)
+    val armedIcon = if (swap) Icons.Rounded.IosShare else idleIcon
+    val armedDesc = if (swap) stringResource(R.string.viewer_share_document) else idleContentDesc
     var shareMode by remember { mutableStateOf(false) }
     var pressed by remember { mutableStateOf(false) }
     var dragUp by remember { mutableFloatStateOf(0f) }

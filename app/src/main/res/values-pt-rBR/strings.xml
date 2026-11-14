@@ -141,6 +141,7 @@
     <string name="viewer_prev">Anterior</string>
     <string name="viewer_next">Pr&#243;ximo</string>
     <string name="viewer_open_another">Abrir outro PDF</string>
+    <string name="viewer_open_another_file">Abrir outro arquivo</string>
     <string name="viewer_share_document">Compartilhar documento</string>
     <string name="viewer_editor_tools">Ferramentas</string>
     <string name="viewer_tools_coming_soon">Ferramentas de edi&#231;&#227;o em breve</string>
@@ -541,7 +542,7 @@
     <string name="tour_reader_tools_message">Toque no ícone de edição para destacar, desenhar, adicionar notas ou assinar.</string>
     <string name="tour_reader_tools_ppt_message">Toque no ícone de notas para destacar, desenhar, adicionar notas ou assinar.</string>
     <string name="tour_reader_share_title">Compartilhar ou abrir outro arquivo</string>
-    <string name="tour_reader_share_message">Toque na cápsula para abrir outro arquivo. Para compartilhar, mantenha-a pressionada e deslize para cima.</string>
+    <string name="tour_reader_share_message">Toque na cápsula para compartilhar o documento. Para abrir outro arquivo, mantenha-a pressionada e deslize para cima.</string>
     <string name="tour_sheet_title">Editar uma planilha</string>
     <string name="tour_sheet_message">Toque no lápis para abrir as opções de formatação, cor e layout das células.</string>
     <string name="back_to_library">Voltar para a biblioteca</string>
@@ -968,6 +969,6 @@
     <string name="motion_stretch">Esticar ao arrastar</string>
     <string name="motion_bloom">Crescer ao segurar</string>
     <string name="motion_reset">Redefinir movimento</string>
-    <string name="settings_invert_share_morph">Trocar compartilhar e abrir</string>
-    <string name="settings_invert_share_morph_desc">No visualizador, toque no botão redondo para compartilhar o documento e toque, segure e deslize para cima para abrir outro arquivo.</string>
+    <string name="settings_tap_opens_file">O toque abre um arquivo</string>
+    <string name="settings_tap_opens_file_desc">No visualizador, toque no botão redondo para abrir outro arquivo; toque, segure e deslize para cima para compartilhar o documento.</string>
 </resources>

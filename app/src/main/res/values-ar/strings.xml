@@ -234,6 +234,7 @@
     <string name="viewer_prev">السابق</string>
     <string name="viewer_next">التالي</string>
     <string name="viewer_open_another">فتح PDF آخر</string>
+    <string name="viewer_open_another_file">فتح ملف آخر</string>
     <string name="viewer_share_document">مشاركة المستند</string>
     <string name="viewer_editor_tools">أدوات التحرير</string>
     <string name="viewer_quick_actions">إجراءات القارئ</string>
@@ -779,7 +780,7 @@
     <string name="tour_reader_tools_message">اضغط أيقونة التحرير للتمييز أو الرسم أو إضافة ملاحظات أو التوقيع.</string>
     <string name="tour_reader_tools_ppt_message">اضغط فقاعة الملاحظات للتمييز أو الرسم أو إضافة ملاحظات أو التوقيع.</string>
     <string name="tour_reader_share_title">شارك أو افتح ملفًا آخر</string>
-    <string name="tour_reader_share_message">اضغط الكبسولة لفتح ملف آخر. للمشاركة، اضغط عليها مطولًا ثم اسحب لأعلى.</string>
+    <string name="tour_reader_share_message">اضغط الكبسولة لمشاركة المستند. لفتح ملف آخر، اضغط عليها مطولًا ثم اسحب لأعلى.</string>
     <string name="tour_sheet_title">تحرير جدول</string>
     <string name="tour_sheet_message">اضغط القلم لإظهار أدوات تنسيق الخلايا ولونها وتخطيطها.</string>
     <string name="back_to_library">العودة إلى المكتبة</string>
@@ -945,6 +946,6 @@
     <string name="motion_stretch">التمدد عند السحب</string>
     <string name="motion_bloom">التضخم عند الضغط المطوّل</string>
     <string name="motion_reset">إعادة ضبط الحركة</string>
-    <string name="settings_invert_share_morph">تبديل المشاركة والفتح</string>
-    <string name="settings_invert_share_morph_desc">في العارض، انقر الزر الدائري لمشاركة المستند، واضغط مطولًا ثم اسحب لأعلى لفتح ملف آخر.</string>
+    <string name="settings_tap_opens_file">النقر يفتح ملفًا</string>
+    <string name="settings_tap_opens_file_desc">في العارض، انقر الزر الدائري لفتح ملف آخر، واضغط مطولًا ثم اسحب لأعلى لمشاركة المستند.</string>
 </resources>

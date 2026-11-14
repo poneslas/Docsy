@@ -773,6 +773,7 @@ internal fun PdfViewerBottomToolbar(
                 glass = if (readerTourStep == 1) LiquidGlassColors.Blue.copy(alpha = 0.2f) else pillGlass,
                 fg = shareInk.color,
                 modifier = shareInk.modifier,
+                idleContentDesc = stringResource(R.string.viewer_open_another_file),
                 onOpen = onOpenAnotherPdf,
                 onShare = onShareDocument,
                 onShareModeChanged = { shareActive = it; onShareHoldChanged(it) }

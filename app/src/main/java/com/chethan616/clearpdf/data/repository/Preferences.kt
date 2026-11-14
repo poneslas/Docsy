@@ -181,11 +181,11 @@ object AppSettingsManager {
     fun getAutoDarkPages(context: Context): Boolean = prefs(context).getBoolean(KEY_AUTO_DARK_PAGES, false)
 
     /**
-     * Swaps the viewer's share/open button: tap shares the document, press-and-hold then swipe up
-     * opens another file (the default is the other way round).
+     * The viewer's share/open button: by default tap shares the document and press-and-hold then
+     * swipe up opens another file. This on = the old arrangement: tap opens, hold-and-swipe shares.
      */
-    fun getInvertShareMorph(context: Context): Boolean = prefs(context).getBoolean("invert_share_morph", false)
-    fun setInvertShareMorph(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("invert_share_morph", enabled).apply()
+    fun getTapOpensFile(context: Context): Boolean = prefs(context).getBoolean("tap_opens_file", false)
+    fun setTapOpensFile(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("tap_opens_file", enabled).apply()
     /** Save asks "Replace …?" before writing edits into the opened file (off after "Don't ask again"). */
     fun getConfirmReplace(context: Context): Boolean = prefs(context).getBoolean("confirm_replace", true)
     fun setConfirmReplace(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("confirm_replace", enabled).apply()
