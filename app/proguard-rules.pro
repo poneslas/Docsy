@@ -54,3 +54,12 @@
 # WorkManager (foss Office-engine downloader) instantiates its Room database reflectively at
 # startup; R8 full mode strips the generated no-arg constructor → launch crash. Keep it.
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
+
+# ── Legacy Office formats (.xls / .doc / .ppt via Apache POI) ──
+# POI finds its record classes reflectively: RecordFactory (HSSF) and the HSLF/HWPF record tables
+# look up each record's `sid` field, its (RecordInputStream) constructor or static `create` method
+# by name. R8 renames, merges and makes those classes abstract, and the lookup then dies in a static
+# initialiser ("Invalid record class ... must not be abstract") — on release builds only, where the
+# viewer swallows it and just says "Couldn't read this spreadsheet." Keep the library as it is.
+-keep class org.apache.poi.** { *; }
+-dontwarn org.apache.poi.**
