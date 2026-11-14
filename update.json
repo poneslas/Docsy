@@ -1,20 +1,20 @@
 {
-  "version": "1.7",
-  "versionCode": 10700,
+  "version": "1.8",
+  "versionCode": 10800,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.7/Docsy-1.7-arm64.apk",
-      "sha256": "d3c30116c41a0d7bfaaf973cedfc8480f224fcc0f663c25716756ed2f1428289",
-      "size": 34075406
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8/Docsy-1.8-arm64.apk",
+      "sha256": "fd8729e990b77a6be2d6f14d11f376210bf94aa8cc0f2cfb7caf7bd8fabfa6af",
+      "size": 35233816
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.7/Docsy-1.7-universal.apk",
-      "sha256": "2a2eddf60b588867f04e27cf13dad3fdfe38faa8a92f3079ba40395e577e94e3",
-      "size": 85722399
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8/Docsy-1.8-universal.apk",
+      "sha256": "d154badf2086fbd36cc40b98d98acce2503f805515936f7583d8e54c890432b4",
+      "size": 86880805
     }
   },
   "notes": {
-    "ru": "«Сохранить» или «Не сохранять», «назад» по шагам, меню правки короче, сохранение надёжнее.",
-    "en": "Save or Don't Save, back goes step by step, shorter edit menu, safer saving."
+    "ru": "Снова открываются старые .xls и .ppt — релиз 1.7 ломал их чтение.",
+    "en": "Legacy .xls and .ppt open again — the 1.7 release broke reading them."
   }
 }
