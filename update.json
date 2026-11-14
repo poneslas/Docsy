@@ -1,20 +1,20 @@
 {
-  "version": "1.8",
-  "versionCode": 10800,
+  "version": "1.8.1",
+  "versionCode": 10801,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8/Docsy-1.8-arm64.apk",
-      "sha256": "fd8729e990b77a6be2d6f14d11f376210bf94aa8cc0f2cfb7caf7bd8fabfa6af",
-      "size": 35233816
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.1/Docsy-1.8.1-arm64.apk",
+      "sha256": "b826669a9ab142a5fb169a13c5b346b5789e2a948063fea05eb58aba40515ca0",
+      "size": 35237904
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8/Docsy-1.8-universal.apk",
-      "sha256": "d154badf2086fbd36cc40b98d98acce2503f805515936f7583d8e54c890432b4",
-      "size": 86880805
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.1/Docsy-1.8.1-universal.apk",
+      "sha256": "97f2dd261db962d0ceed3bc02c9cf4f3889aea568bc40f65b764af7869727ecd",
+      "size": 86901289
     }
   },
   "notes": {
-    "ru": "Снова открываются старые .xls и .ppt — релиз 1.7 ломал их чтение.",
-    "en": "Legacy .xls and .ppt open again — the 1.7 release broke reading them."
+    "ru": "Фильтры редактора фото работают на самых новых телефонах (16 KB-страницы).",
+    "en": "Photo editor filters work on the newest phones (16 KB page sizes)."
   }
 }
