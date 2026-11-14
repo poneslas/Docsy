@@ -1,20 +1,20 @@
 {
-  "version": "1.8.2",
-  "versionCode": 10802,
+  "version": "1.9",
+  "versionCode": 10900,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.2/Docsy-1.8.2-arm64.apk",
-      "sha256": "aa831a6874818ecffc81e39ff8e49c92921b9dc76280f826a3d9a25e895d4856",
-      "size": 35237923
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.9/Docsy-1.9-arm64.apk",
+      "sha256": "7658d8dde48360dc7413c9a2a0d2425a73eb78bde73d4503da37fbc8c6e040a0",
+      "size": 35240812
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.2/Docsy-1.8.2-universal.apk",
-      "sha256": "4a1be3b6d098e75503d64f2891c9254ebd66b1f9560e31a0f2616032de646d8f",
-      "size": 86901307
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.9/Docsy-1.9-universal.apk",
+      "sha256": "a9274d12ce7f1f72663c3d37ca452444cf3b5b08d0e58da1ec576593da934493",
+      "size": 86904191
     }
   },
   "notes": {
-    "ru": "Надпись в настройках обновлений теперь — «Проверять автоматически».",
-    "en": "The update settings label now reads \"Check automatically\"."
+    "ru": "«Поделиться» по тапу, рейка страниц — на документах от 5 страниц.",
+    "en": "Share on tap; the page rail now appears from 5 pages on."
   }
 }
