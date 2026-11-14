@@ -146,6 +146,13 @@ android {
         }
     }
     packaging {
+        jniLibs {
+            // libyuv-decoder.so приходит и из GPUImage (с 4 KB-выравниванием — не грузится на
+            // Android с 16 KB-страницами), и из src/main/jniLibs, где лежит наш перепакованный
+            // с 16 KB (смещения сдвинуты, vaddr/DYNAMIC/символы не тронуты). Первым берётся
+            // источник из src/main/jniLibs.
+            pickFirsts += "**/libyuv-decoder.so"
+        }
         resources {
             excludes += arrayOf(
                 "DebugProbesKt.bin",
@@ -228,6 +235,9 @@ dependencies {
     // + desugaring and drags in androidx.core 1.19) for GL adjustments/filters, EXIF read/strip,
     // and ML Kit subject segmentation for auto background removal (API 24+, gated at runtime;
     // isolated behind BackgroundRemover so a FOSS flavor can swap it out).
+    // Нативный libyuv-decoder.so от 2.1.0 собран с 4 KB-выравниванием: на устройствах с 16 KB
+    // страницами (новые Android 15/16) он не грузится и фильтры молча отваливаются. Перепакованная
+    // копия лежит в src/main/jniLibs — см. pickFirsts в packaging.
     implementation(libs.gpuimage)
     implementation(libs.androidx.exifinterface)
     "playImplementation"(libs.mlkit.subject.segmentation)
@@ -246,8 +256,8 @@ dependencies {
 // Доки: своя версия, независимо от версии ClearPDF внутри.
 // versionCode = мажор × 10000 + минор × 100 + патч, только растёт.
 android.defaultConfig {
-    versionCode = 10800
-    versionName = "1.8"
+    versionCode = 10801
+    versionName = "1.8.1"
 }
 
 // Доки обновляются сами только в сборке с GitHub (foss). Google Play и F-Droid обновляют приложения сами.

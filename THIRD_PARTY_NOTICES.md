@@ -116,6 +116,10 @@ The app does not bundle GPL or LGPL components for document rendering. If a futu
 - License: Apache License 2.0 (CyberAgent, Inc.)
 - Use: GL-accelerated adjustments (white balance, vibrance, gamma, sharpen, vignette) and
   artistic presets in the image editor.
+- Modification: its native `libyuv-decoder.so` ships with 4 KB LOAD-segment alignment and fails
+  to load on 16 KB page-size devices (new Android 15/16). We repack it with 16 KB alignment
+  (file offsets shifted, vaddrs/DYNAMIC/symbols untouched) and vendor the fixed copy in
+  `app/src/main/jniLibs/`; the build picks it over the AAR's via a `pickFirsts` rule.
 
 ## Google ML Kit Subject Segmentation
 
