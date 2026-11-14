@@ -1,20 +1,20 @@
 {
-  "version": "1.8.1",
-  "versionCode": 10801,
+  "version": "1.8.2",
+  "versionCode": 10802,
   "apk": {
     "arm64-v8a": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.1/Docsy-1.8.1-arm64.apk",
-      "sha256": "b826669a9ab142a5fb169a13c5b346b5789e2a948063fea05eb58aba40515ca0",
-      "size": 35237904
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.2/Docsy-1.8.2-arm64.apk",
+      "sha256": "aa831a6874818ecffc81e39ff8e49c92921b9dc76280f826a3d9a25e895d4856",
+      "size": 35237923
     },
     "universal": {
-      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.1/Docsy-1.8.1-universal.apk",
-      "sha256": "97f2dd261db962d0ceed3bc02c9cf4f3889aea568bc40f65b764af7869727ecd",
-      "size": 86901289
+      "url": "https://github.com/poneslas/Docsy/releases/download/v1.8.2/Docsy-1.8.2-universal.apk",
+      "sha256": "4a1be3b6d098e75503d64f2891c9254ebd66b1f9560e31a0f2616032de646d8f",
+      "size": 86901307
     }
   },
   "notes": {
-    "ru": "Фильтры редактора фото работают на самых новых телефонах (16 KB-страницы).",
-    "en": "Photo editor filters work on the newest phones (16 KB page sizes)."
+    "ru": "Надпись в настройках обновлений теперь — «Проверять автоматически».",
+    "en": "The update settings label now reads \"Check automatically\"."
   }
 }
